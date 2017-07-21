@@ -3,7 +3,9 @@ var SerialPort = require('serialport');
 
 // global vars
 
-var simonRedBttnWeight = 0;
+//var simonRedBttnWeight = 0;
+
+
 
 
 // the ports the arduinos are connected to
@@ -15,6 +17,9 @@ const SIMON_BLUE   = 3;
 const SIMON_YELLOW = 4;
 
 var simonPorts = [5];
+
+
+var buttonWeights = [0, 0, 0, 0, 0]
 
 // these are the ids of the arduinos that correspond to each controller
 // This will let us correctly assing the right arduino to the right function
@@ -37,7 +42,13 @@ function setupArduinos() {
       simonPorts[SIMON_CENTER].write ('GS_ATTRACT' + '\n');
 
       simonPorts[SIMON_RED].write ('SIMON_RED' + '\n');
-      simonPorts[SIMON_RED].write ('READ_BUTTONS' + '\n');
+      // uncomment these lines when we have all four buttons
+      //simonPorts[SIMON_GREEN].write ('SIMON_GREEN' + '\n');
+      //simonPorts[SIMON_BLUE].write ('SIMON_BLUE' + '\n');
+      //simonPorts[SIMON_YELLOW].write ('SIMON_RED' + '\n');
+
+      readAllButtons();      
+            
   
 }
 
@@ -86,24 +97,59 @@ function stripAlphaChars(source) {
   return out;
 }
 
+
 // the ardie sent us data
 function receiveSerialData(data) {
   // console.log( String(data));
   //process.stdout.write(data);
 
-  if (data.toString().indexOf("SIMON_RED") > -1) {
-    if (data.toString().indexOf("BTTN:") > -1){
-        var strIndex = data.toString().indexOf("BTTN:");
-        simonRedBttnWeight = parseInt(data.toString().substring(strIndex+5),10);
+  var btnId = -1;
 
-
-    }
-
+   // gotta find a better way of doing this`
+  if (data.toString().indexOf("SIMON_CENTER") > -1) {
+    btnId = SIMON_CENTER;
+  } else if (data.toString().indexOf("SIMON_RED") > -1) {
+    btnId = SIMON_RED;
+  } else if (data.toString().indexOf("SIMON_GREEN") > -1) {
+    btnId = SIMON_GREEN;
+  } else if (data.toString().indexOf("SIMON_BLUE") > -1) {
+    btnId = SIMON_BLUE;
+  } else if (data.toString().indexOf("SIMON_YELLOW") > -1) {
+    btnId = SIMON_YELLOW;
   }
+
+  switch ( btnId ) {
+    case SIMON_CENTER:
+      break;
+
+    case SIMON_RED:
+    case SIMON_GREEN:
+    case SIMON_BLUE:
+    case SIMON_YELLOW:
+      if (data.toString().indexOf("BTTN:") > -1){
+        var strIndex = data.toString().indexOf("BTTN:");
+        buttonWeights[btnId] = parseInt(data.toString().substring(strIndex+5),10);
+      }
+      break;
+  }
+
 
 }
 
+// reads one button
+function readButton(btnId) {
+  simonPorts[btnId].write ('READ_BUTTONS' + '\n');
+}
 
+// reads all readAllButtons
+function readAllButtons() {
+
+  simonPorts[SIMON_RED].write ('READ_BUTTONS' + '\n');
+  simonPorts[SIMON_GREEN].write ('READ_BUTTONS' + '\n');
+  simonPorts[SIMON_BLUE].write ('READ_BUTTONS' + '\n');
+  simonPorts[SIMON_YELLOW].write ('READ_BUTTONS' + '\n');
+
+}
 
 
 ////////////////////////////////////
@@ -165,8 +211,8 @@ function loop () {
       gameState = GS_ATTRACT;
       break;
     case GS_ATTRACT:
-      simonPorts[SIMON_RED].write ('READ_BUTTONS' + '\n');
-      if (simonRedBttnWeight > 0) {
+      readButton(SIMON_RED)
+      if (buttonWeights[SIMON_RED] > 0) {
         console.log ("Button Pushed :: Start Game");
         gameState = GS_STARTED;
       }
@@ -179,3 +225,4 @@ function loop () {
 
 
 }
+  
