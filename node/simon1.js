@@ -2,6 +2,10 @@ var SerialPort = require('serialport');
 
 ////////////////
 
+// set to true to run self-test
+//var autotest = true;
+
+
 // the ports the arduinos are connected to
 const SIMON_CENTER = 0;
 
@@ -36,6 +40,7 @@ var pnpIds = {
 // setup functions
 //
 
+////////////////
 // tell each of the connected ardies what they are and start their modes
 function setupArduinos() {
       // setup parts
@@ -55,6 +60,7 @@ function setupArduinos() {
 
 
 
+////////////////
 // tells the ports what functions should handle each event
 function setupHandlers(port) {
     console.log ("setting up ports");
@@ -103,6 +109,7 @@ function stripAlphaChars(source) {
 }
 
 
+////////////////
 // the ardie sent us data
 function receiveSerialData(data) {
   //console.log( String(data));
@@ -145,12 +152,14 @@ function receiveSerialData(data) {
 
 }
 
+////////////////
 // reads one button
 function readButton(btnId) {
   simonPorts[btnId].write ('READ_BUTTONS' + '\n');
 }
 
-// reads all buttons
+////////////////
+// reads all buttons.  Resets their weights to unread if specified
 function readAllButtons(resetWeights) {
 
   if (resetWeights) {
@@ -168,6 +177,7 @@ function readAllButtons(resetWeights) {
 }
 
 
+////////////////
 // returns the button with the most weight, or -1 if not all buttons have reported yet
 function getPressedButton() {
 
@@ -187,7 +197,6 @@ function getPressedButton() {
   }
 
   console.log("button pushed is..." + maxWeightIdx.toString());
-
 
   return maxWeightIdx;
 
@@ -241,9 +250,10 @@ function testFakeButtonPress(ok) {
 // These are the methods that control the lights and sound
 //
 
+////////////////
 // lights up the specified color and triggers the correct sound
-function showColor(coloridx) {
-  console.log("ShowColor: " + coloridx.toString());
+function showColor(coloridx, howLong) {
+  console.log("ShowColor: " + coloridx.toString() );
 
   // send to raspberryPi
   // TBD
@@ -261,42 +271,61 @@ function showColor(coloridx) {
 var simonSequenceIdx = 0;
 var simonIntervalTimer = null;
 
+////////////////
+// shows the next color and sets a timer
 function showNextSimonColor() {
   if ( simonSequenceIdx < simonsSequence.length) {
-    showColor(simonsSequence[simonSequenceIdx]);
+    showColor(simonsSequence[simonSequenceIdx], simonIntervalTimer);
     simonSequenceIdx++;
   }
   else {
-    // we're done, start the player's timer
+    // we're done, start the player's timer or go back to attract mode
     if ( simonIntervalTimer ) {
       clearInterval(simonIntervalTimer);
     }
-    gameState = GS_STARTTIMER;
+    if ( gameState == GS_GAME_OVER) {
+      // go back to attract mode
+      gameState = GS_ATTRACT;
+    }
+    else {
+      startPlayersTimer();
+    }
   }
 }
 
 
+////////////////
 // playes the entire simon sequence
-function showSimonsSequence() {
-  gameState = GS_SHOWINGSEQ;  // set this so the game loop doesn't re-enter here
+function showSimonsSequence(gameOver) {
+  if ( gameOver ) {
+    gameState = GS_GAME_OVER;
+  }
+  else {
+    gameState = GS_SHOWINGSEQ;  // set this so the game loop doesn't re-enter here
+  }
   console.log("Showing simon's sequence");
   simonSequenceIdx = 0;
   // how fast do we show simon?
   var simonms = 0;
-  if (simonsSequence.length > 10 ) {
-    simonms = 125;
-  }
-  else if (simonsSequence.length > 6 ) {
-    simonms = 250;
-  }
-  else {
+  if ( gameOver ) {
     simonms = 500;
   }
-
+  else {
+    if (simonsSequence.length > 10 ) {
+      simonms = 125;
+    }
+    else if (simonsSequence.length > 6 ) {
+      simonms = 250;
+    }
+    else {
+      simonms = 500;
+    }
+  }
   simonIntervalTimer = setInterval (showNextSimonColor,simonms);
 }
 
 
+////////////////
 // starts the timer for the player to pick their button
 function startPlayersTimer() {
   gameState = GS_TIMER;
@@ -313,7 +342,14 @@ function startPlayersTimer() {
 
   // when time is up, read the buttons
   setTimeout(function(){
-    gameState = GS_READBUTTONS;
+
+    readAllButtons(true);
+    // uncomment to run self-test sequence
+    if ( autotest ) {
+      testFakeButtonPress(playerSequence.length < 5);
+    }
+  
+    gameState = GS_PLAYER;
   }, timerms);
 
 }
@@ -331,16 +367,20 @@ var simonsSequence = []
 var playerSequence = []
 
 
+////////////////
+// pick a new color to add, then show the sequence
 function addNewColor() {
   console.log("Add new color");
   var coloridx = Math.floor(Math.random() * (LAST_BUTTON + 1 - FIRST_BUTTON) + FIRST_BUTTON);
   simonsSequence.push(coloridx);
   console.log(simonsSequence)
-  gameState = GS_SHOWSEQ;   // now that we've added a color, show everyone the full sequence
+  showSimonsSequence(false);
 
 }
 
 
+////////////////
+////////////////
 // checks if the player's pattern so far matches
 function checkPattern() {
   // note that player sequence will always be less than simon's sequence
@@ -364,7 +404,7 @@ function makePlayersChoice() {
 
     if ( checkPattern() ) {
       // success, show pushed color
-      showColor(selected);
+      showColor(selected, 500);
       if ( playerSequence.length == simonsSequence.length ) {
         // they got it!   computer's turn
         console.log("++++ player got entire sequence");
@@ -373,7 +413,7 @@ function makePlayersChoice() {
       }
       else {
         // so far so good, but they haven't finished the sequence yet, start timer for next button
-        gameState = GS_STARTTIMER;
+        startPlayersTimer();
       }
     
 
@@ -381,8 +421,7 @@ function makePlayersChoice() {
     else {
       // bzzzzzz - failed, game over
       console.log("GAME OVER!!!!");
-
-      gameState = GS_GAME_OVER;
+      gameOver();
 
     }
 
@@ -391,7 +430,16 @@ function makePlayersChoice() {
   
 }
 
+////////////////
+// show the game over sequence
+function gameOver() {
+  // buzz 
+  showSimonsSequence(true);
 
+}
+
+
+////////////////
 // start a brand new game
 function newGame() {
   console.log("New Game!");
@@ -411,6 +459,7 @@ function newGame() {
 //
 //
 
+////////////////
 // The first thing we do is find and connect all the arduinos connected as USB/serial ports 
 SerialPort.list(function (err, ports) {
   ports.forEach(function(port) {
@@ -442,19 +491,17 @@ SerialPort.list(function (err, ports) {
 const GS_INIT       = -1; // waiting to set up
 const GS_ATTRACT    = 1;  // running attract mode, waiting for RED to be pressed to start the game
 const GS_COMPUTER   = 2;  // Player got sequence right, Computer is thinking, adding a new color to the sequence
-const GS_SHOWSEQ    = 3;  // Start the process of showing the computer's sequence
-const GS_SHOWINGSEQ = 4;  // we are showing the sequence.  Just wait...
-const GS_STARTTIMER = 5;  // Start the timer for the player to push the next button
-const GS_TIMER      = 6;  // timer is running down, just wait...
-const GS_READBUTTONS= 7;  // reading the button weights
-const GS_PLAYER     = 8;  // timer ran our, figure out what button the player pushed
-const GS_EVALUATING = 9;  // evaluate if the player pushed the right button
-const GS_GAME_OVER  = 10; // player got the sequence wrong...
+const GS_SHOWINGSEQ = 3;  // we are showing the sequence.  Just wait...
+const GS_TIMER      = 4;  // timer is running down, just wait...
+const GS_PLAYER     = 5;  // timer ran our, figure out what button the player pushed
+const GS_EVALUATING = 6;  // evaluate if the player pushed the right button
+const GS_GAME_OVER  = 7; // player got the sequence wrong...
 
 var gameState = GS_INIT;
 
 
 
+////////////////
 // this will start the loop 5 seconds after we start up (to allow ports to be initialized), then
 // start a 50 ms loop
 setTimeout(function(){
@@ -463,6 +510,7 @@ setTimeout(function(){
 }, 5000);
 
 
+////////////////
 // the main game loop
 function loop () {
 
@@ -480,8 +528,9 @@ function loop () {
         newGame();
       }
       ////////////
-      // enable this to auto-test the logic
-      newGame();
+      if ( autotest ) {
+        newGame();
+      }
       //
       ///////////
       break;
@@ -491,31 +540,14 @@ function loop () {
       addNewColor();
       break;
 
-    case GS_SHOWSEQ:
-      showSimonsSequence();
-      break;
-
     case GS_SHOWINGSEQ:
       // be patient while simon shows the player the sequence
       break;
 
-    case GS_STARTTIMER:
-      // put the center into countdown mode
-      startPlayersTimer();
-      break;
-
     case GS_TIMER:
+      // waiting for the timer to run down
       break;
 
-    case GS_READBUTTONS:
-      // timer ran out, check the buttons to see what the player has pressed 
-      readAllButtons(true);
-      // uncomment to run self-test sequence
-      testFakeButtonPress(playerSequence.length < 20);
-      
-      gameState = GS_PLAYER;
-      break;
-      
     case GS_PLAYER:
       makePlayersChoice();
       break;
@@ -525,6 +557,7 @@ function loop () {
       break;
 
     case GS_GAME_OVER:
+      // showing the game over sequence, then returning to attract mode
       break;
   }
 
