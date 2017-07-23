@@ -3,7 +3,7 @@ var SerialPort = require('serialport');
 ////////////////
 
 // set to true to run self-test
-//var autotest = true;
+var autotest = true;
 
 
 // the ports the arduinos are connected to
@@ -24,8 +24,9 @@ var buttonWeights = [0, 0, 0, 0, 0]
 // these are the ids of the arduinos that correspond to each controller
 // This will let us correctly assing the right arduino to the right function
 var pnpIds = {
-  "USB\\VID_2341&PID_0042\\95635333331351416032" : SIMON_CENTER, 
-  "USB\\VID_2341&PID_0042\\95635333331351801190" : SIMON_RED  
+  "USB\\VID_2341&PID_0042\\95437313934351F0D0E0" : SIMON_CENTER,
+  "USB\\VID_2341&PID_0042\\95635333331351416032" : SIMON_RED
+  //"USB\\VID_2341&PID_0042\\95635333331351801190" : SIMON_RED  
 
   // uncomment these when we have all buttons and set the correct strings
   //"USB\\VID_2341&PID_0042\\95635333331351801190" : SIMON_GREEN,  
@@ -34,6 +35,15 @@ var pnpIds = {
 
 
 }
+
+var rgbs = [
+  {}, 
+  {"r" : 255, "g" : 0, "b" : 0, "rgb" : "255-0-0" },  // SIMON_RED
+  {"r" : 0, "g" : 255, "b" : 0, "rgb" : "0-255-0" },  // SIMON_GREEN
+  {"r" : 0, "g" : 0, "b" : 255, "rgb" : "0-0-255" },  // SIMON_BLUE
+  {"r" : 255, "g" : 255, "b" : 0, "rgb" : "255-255-0" },  // SIMON_YELLOW
+]
+
 
 
 ////////////////////////////////////
@@ -46,7 +56,7 @@ function setupArduinos() {
       // setup parts
       simonPorts[SIMON_CENTER].write ('SIMON_CENTER' + '\n');
       simonPorts[SIMON_CENTER].write ('GS_ATTRACT' + '\n');
-
+ 
       simonPorts[SIMON_RED].write ('SIMON_RED' + '\n');
       // uncomment these lines when we have all four buttons
       //simonPorts[SIMON_GREEN].write ('SIMON_GREEN' + '\n');
@@ -89,7 +99,7 @@ function openPort (port) {
 }
 
 function showPortOpen(path, options) {
-  console.log('port open. Data rate: ' + path);
+  console.log('port open. Data rate: ' + path + " : " + options);
 }
 
 function showPortClose() {
@@ -259,8 +269,12 @@ function showColor(coloridx, howLong) {
   // TBD
 
   // trigger audino
-  // TBD
+  simonPorts[SIMON_CENTER].write("GS_FLASCOLOR:" + rgbs[coloridx]['rgb'] + ":" + howLong.toString());
 
+  // temporary check in case we don't have all four colors hooked up 
+  if (coloridx < simonPorts.length) {
+    simonPorts[coloridx].write("GS_FLASHCOLOR:" + rgbs[coloridx]['rgb'] + ":" + howLong.toString());
+  }
 
 }
 
@@ -339,6 +353,7 @@ function startPlayersTimer() {
 
   // send message to center arduino
   // TBD
+  simonPorts[SIMON_CENTER].write("GS_TIMER:" + timerms.toString());
 
   // when time is up, read the buttons
   setTimeout(function(){
@@ -346,7 +361,7 @@ function startPlayersTimer() {
     readAllButtons(true);
     // uncomment to run self-test sequence
     if ( autotest ) {
-      testFakeButtonPress(playerSequence.length < 5);
+      testFakeButtonPress(playerSequence.length < 15);
     }
   
     gameState = GS_PLAYER;
@@ -467,7 +482,7 @@ SerialPort.list(function (err, ports) {
     console.log(port.pnpId);
     console.log(port.manufacturer);
     var newPort = new SerialPort (port.comName,{
-      baudrate: 115200,
+      baudRate: 115200,
       autoOpen: false
     });
     if (port.pnpId in pnpIds ) {
@@ -530,6 +545,7 @@ function loop () {
       ////////////
       if ( autotest ) {
         newGame();
+        //setTimeout(newGame, 5000);
       }
       //
       ///////////

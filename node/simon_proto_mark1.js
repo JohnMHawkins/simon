@@ -8,7 +8,7 @@ SerialPort.list(function (err, ports) {
     console.log(port.pnpId);
     console.log(port.manufacturer);
     var newPort = new SerialPort (port.comName,{
-      baudrate: 115200,
+      baudRate: 115200,
       autoOpen: false
     });
     simonPorts.push (newPort);
@@ -29,6 +29,7 @@ function setupHandlers(port) {
 }
 
 function openPort (port) {
+  console.log(port)
   port.open(function(error) {
       if (error) {
         console.log('failed to open port: ' + error);
@@ -101,12 +102,13 @@ function loop () {
   if (gameState == -1) {
     // setup parts
     simonPorts[SIMON_CENTER].write ('SIMON_CENTER' + '\n');
-    simonPorts[SIMON_RED].write ('SIMON_RED' + '\n');
+    simonPorts[SIMON_RED].write ('SIMON_CENTER' + '\n');
     simonPorts[SIMON_CENTER].write ('GS_ATTRACT' + '\n');
-    simonPorts[SIMON_RED].write ('READ_BUTTONS' + '\n');
+    simonPorts[SIMON_RED].write ('GS_ATTRACT' + '\n');
     gameState = 1;
   } else if (gameState == 1) {
-    simonPorts[SIMON_RED].write ('READ_BUTTONS' + '\n');
+    
+    //simonPorts[SIMON_RED].write ('READ_BUTTONS' + '\n');
     if (simonRedBttnWeight > 0) {
       console.log ("Button Pushed :: Start Game");
       gameState = 2;
