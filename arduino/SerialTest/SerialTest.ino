@@ -36,7 +36,7 @@ void loop() {
 //
 void simonOutput (String outputString) {
     Serial.print(deviceName);
-    Serial.print(" : ");
+    Serial.print(":");
     Serial.println(outputString);         
 }
 
