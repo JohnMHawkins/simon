@@ -68,15 +68,11 @@ void parseCommand () {
          
   } else if (inputString == "GS_COMPUTER") {
     simonOutput (inputString);
-    //Call your attract function here
+    //Call compiter function here
 
   } else if (inputString == "GS_TIMER") {
     simonOutput (inputString);
-    //Call your attract function here
-
-  } else if (inputString == "GS_TIMER") {
-    simonOutput (inputString);
-    //Call your attract function here
+    //Call your timer function here
   
   } else if (inputString == "READ_BUTTONS") {
     //create test button data, replace with real button function
