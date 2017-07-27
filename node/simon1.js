@@ -55,7 +55,7 @@ var rgbs = [
 function setupArduinos() {
       // setup parts
       simonPorts[SIMON_CENTER].write ('NAME:SIMON_CENTER' + '\n');
-      simonPorts[SIMON_CENTER].write ('MODE:ATTRACT' + '\n');
+      simonPorts[SIMON_CENTER].write ('GS_ATTRACT' + '\n');
 
       simonPorts[SIMON_RED].write ('NAME:SIMON_RED' + '\n');
       // uncomment these lines when we have all four buttons
@@ -234,16 +234,16 @@ function testFakeButtonPress(ok) {
     data = ""
     switch ( idx) {
       case SIMON_RED:
-        data = "SIMON_RED : ";
+        data = "SIMON_RED:";
         break;
       case SIMON_GREEN:
-        data = "SIMON_GREEN : ";
+        data = "SIMON_GREEN:";
         break;
       case SIMON_BLUE:
-        data = "SIMON_BLUE : ";
+        data = "SIMON_BLUE:";
         break;
       case SIMON_YELLOW:
-        data = "SIMON_YELLOW : ";
+        data = "SIMON_YELLOW:";
         break;
     }
     data = data + "BTTN:" + wgt.toString();
@@ -269,11 +269,12 @@ function showColor(coloridx, howLong) {
   // TBD
 
   // trigger audino
-  simonPorts[SIMON_CENTER].write("GS_FLASCOLOR:" + rgbs[coloridx]['rgb'] + ":" + howLong.toString());
+  console.log("FLASHCOLOR:" + rgbs[coloridx]['rgb'] + ":" + howLong.toString() + "\n");
+  simonPorts[SIMON_CENTER].write("FLASHCOLOR:" + rgbs[coloridx]['rgb'] + ":" + howLong.toString() + "\n");
 
   // temporary check in case we don't have all four colors hooked up
   if (coloridx < simonPorts.length) {
-    simonPorts[coloridx].write("GS_FLASHCOLOR:" + rgbs[coloridx]['rgb'] + ":" + howLong.toString());
+    simonPorts[coloridx].write("FLASHCOLOR:" + rgbs[coloridx]['rgb'] + ":" + howLong.toString() + "\n");
   }
 
 }

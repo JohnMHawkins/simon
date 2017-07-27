@@ -50,9 +50,40 @@ void parseCommand () {
 
   if (inputString.substring(0,4) == "NAME" ) {
     simonAssignDeviceName();
-  } else if (inputString.substring(0,4) == "MODE") {
-    simonMode = getValue(inputString, ':', 1);
-    simonOutput (simonMode);     
+ 
+  } else if (inputString.substring(0,10) == "FLASHCOLOR" ) {
+    //simonOutput(inputString);
+    String colorRGB = getValue(inputString, ':', 1);
+    
+    String colorRed = getValue(colorRGB, '-', 0);
+    String colorGreen = getValue(colorRGB, '-', 1);
+    String colorBlue = getValue(colorRGB, '-', 2);
+    
+    String colorTime = getValue(inputString, ':', 2);
+    simonOutput("COLOR:" + colorRed + "::"+ colorGreen + "::" + colorBlue + " TIME:" + colorTime);
+  
+  } else if (inputString == "GS_ATTRACT") {
+    simonOutput (inputString);
+    //Call your attract function here
+         
+  } else if (inputString == "GS_COMPUTER") {
+    simonOutput (inputString);
+    //Call your attract function here
+
+  } else if (inputString == "GS_TIMER") {
+    simonOutput (inputString);
+    //Call your attract function here
+
+  } else if (inputString == "GS_TIMER") {
+    simonOutput (inputString);
+    //Call your attract function here
+  
+  } else if (inputString == "READ_BUTTONS") {
+    //create test button data, replace with real button function
+    simonOutput ("BTTN:1000");     
+  
+  } else {
+    simonOutput ("NOCMD: " + inputString);
   }
 
   // clear inputString 
