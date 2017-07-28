@@ -3,7 +3,7 @@ var SerialPort = require('serialport');
 ////////////////
 
 // set to true to run self-test
-var autotest = true;
+var autotest = false;
 
 
 // the ports the arduinos are connected to
@@ -24,20 +24,19 @@ var buttonWeights = [0, 0, 0, 0, 0]
 // these are the ids of the arduinos that correspond to each controller
 // This will let us correctly assing the right arduino to the right function
 var pnpIds = {
-  "USB\\VID_2341&PID_0042\\956353333313512181F1" : SIMON_CENTER,
-  "USB\\VID_2341&PID_0042\\95635333331351A03281" : SIMON_RED,
-  "USB\\VID_2341&PID_0042\\95635333331351801190" : SIMON_GREEN,  
+  "USB\\VID_2341&PID_0042\\9563533333135180C120" : SIMON_CENTER,
+  "USB\\VID_2341&PID_0042\\9563533333135191A2F0" : SIMON_RED,
+  "USB\\VID_2341&PID_0042\\95635333331351416032" : SIMON_GREEN
 
   // uncomment these when we have all buttons and set the correct strings
-  //"USB\\VID_2341&PID_0042\\95635333331351A03281" : SIMON_GREEN,  
-  //"USB\\VID_2341&PID_0042\\95635333331351801190" : SIMON_BLUE  
-  //"USB\\VID_2341&PID_0042\\95635333331351A03281" : SIMON_YELLOW  
+  //"USB\\VID_2341&PID_0042\\95635333331351801190" : SIMON_BLUE,
+  //"USB\\VID_2341&PID_0042\\95635333331351801190" : SIMON_YELLOW
 
 
 }
 
 var rgbs = [
-  {}, 
+  {},
   {"r" : 255, "g" : 0, "b" : 0, "rgb" : "255-0-0" },  // SIMON_RED
   {"r" : 0, "g" : 255, "b" : 0, "rgb" : "0-255-0" },  // SIMON_GREEN
   {"r" : 0, "g" : 0, "b" : 255, "rgb" : "0-0-255" },  // SIMON_BLUE
@@ -54,10 +53,10 @@ var rgbs = [
 // tell each of the connected ardies what they are and start their modes
 function setupArduinos() {
       // setup parts
-      simonPorts[SIMON_CENTER].write ('SIMON_CENTER' + '\n');
+      simonPorts[SIMON_CENTER].write ('NAME:SIMON_CENTER' + '\n');
       simonPorts[SIMON_CENTER].write ('GS_ATTRACT' + '\n');
- 
-      simonPorts[SIMON_RED].write ('SIMON_RED' + '\n');
+
+      simonPorts[SIMON_RED].write ('NAME:SIMON_RED' + '\n');
       // uncomment these lines when we have all four buttons
       simonPorts[SIMON_GREEN].write ('SIMON_GREEN' + '\n');
       //simonPorts[SIMON_BLUE].write ('SIMON_BLUE' + '\n');
@@ -65,9 +64,9 @@ function setupArduinos() {
       //simonPorts[SIMON_BLUE].write ('SIMON_BLUE' + '\n');
       //simonPorts[SIMON_YELLOW].write ('SIMON_RED' + '\n');
 
-      readAllButtons(true);      
-            
-  
+      readAllButtons(true);
+
+
 }
 
 
@@ -129,12 +128,17 @@ function stripAlphaChars(source) {
 ////////////////
 // the ardie sent us data
 function receiveSerialData(data) {
+<<<<<<< HEAD
   console.log( String(data));
   //process.stdout.write(data);
+=======
+  //console.log( String(data));
+  process.stdout.write(data);
+>>>>>>> 7242c5c686b650cb4688dd5973726d4d3dd478a9
 
   var ardId = -1;
 
-   
+
   if (data.toString().indexOf("SIMON_CENTER") > -1) {
     ardId = SIMON_CENTER;
   } else if (data.toString().indexOf("SIMON_RED") > -1) {
@@ -148,7 +152,7 @@ function receiveSerialData(data) {
   }
 
   var bttnIdx = data.toString().indexOf("BTTN:");
-  
+
   // put other data the button can send here
   //var fooIdx = data.toString().indexOf("FOO:")
 
@@ -243,16 +247,16 @@ function testFakeButtonPress(ok) {
     data = ""
     switch ( idx) {
       case SIMON_RED:
-        data = "SIMON_RED : ";
+        data = "SIMON_RED:";
         break;
       case SIMON_GREEN:
-        data = "SIMON_GREEN : ";
+        data = "SIMON_GREEN:";
         break;
       case SIMON_BLUE:
-        data = "SIMON_BLUE : ";
+        data = "SIMON_BLUE:";
         break;
       case SIMON_YELLOW:
-        data = "SIMON_YELLOW : ";
+        data = "SIMON_YELLOW:";
         break;
     }
     data = data + "BTTN:" + wgt.toString();
@@ -278,11 +282,12 @@ function showColor(coloridx, howLong) {
   // TBD
 
   // trigger audino
-  simonPorts[SIMON_CENTER].write("GS_FLASCOLOR:" + rgbs[coloridx]['rgb'] + ":" + howLong.toString());
+  console.log("FLASHCOLOR:" + rgbs[coloridx]['rgb'] + ":" + howLong.toString() + "\n");
+  simonPorts[SIMON_CENTER].write("FLASHCOLOR:" + rgbs[coloridx]['rgb'] + ":" + howLong.toString() + "\n");
 
-  // temporary check in case we don't have all four colors hooked up 
+  // temporary check in case we don't have all four colors hooked up
   if (coloridx < simonPorts.length) {
-    simonPorts[coloridx].write("GS_FLASHCOLOR:" + rgbs[coloridx]['rgb'] + ":" + howLong.toString());
+    simonPorts[coloridx].write("FLASHCOLOR:" + rgbs[coloridx]['rgb'] + ":" + howLong.toString() + "\n");
   }
 
 }
@@ -372,7 +377,7 @@ function startPlayersTimer() {
     if ( autotest ) {
       testFakeButtonPress(playerSequence.length < 15);
     }
-  
+
     gameState = GS_PLAYER;
   }, timerms);
 
@@ -411,7 +416,7 @@ function checkPattern() {
   for ( idx = 0; idx < playerSequence.length; idx++  ) {
     if ( playerSequence[idx] != simonsSequence[idx]) {
       return false;
-    } 
+    }
   }
   return true;
 
@@ -439,7 +444,7 @@ function makePlayersChoice() {
         // so far so good, but they haven't finished the sequence yet, start timer for next button
         startPlayersTimer();
       }
-    
+
 
     }
     else {
@@ -451,13 +456,13 @@ function makePlayersChoice() {
 
   }
 
-  
+
 }
 
 ////////////////
 // show the game over sequence
 function gameOver() {
-  // buzz 
+  // buzz
   showSimonsSequence(true);
 
 }
@@ -497,7 +502,7 @@ SerialPort.list(function (err, ports) {
     if (port.pnpId in pnpIds ) {
       console.log("assinging " + port.pnpId + " to " + (pnpIds[port.pnpId]).toString() )
       simonPorts[pnpIds[port.pnpId]] = newPort;
-    } 
+    }
     else {
       console.log ("unknown port " + port.pnpId);
     }
@@ -564,7 +569,7 @@ function loop () {
       break;
 
     case GS_COMPUTER:
-      // simon is taking his turn. 
+      // simon is taking his turn.
       addNewColor();
       break;
 
@@ -591,4 +596,3 @@ function loop () {
 
 
 }
-  
