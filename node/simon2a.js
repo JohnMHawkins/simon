@@ -571,6 +571,7 @@ function loop () {
             break;
 
     case GS_ATTRACT:
+      console.log("GS_ATTRACT waiting for red button");
       readButton(SIMON_RED);
       //readButton(SIMON_GREEN);
       if (buttonWeights[SIMON_RED] > 0) {
