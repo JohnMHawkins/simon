@@ -130,6 +130,18 @@ void processSimonCommand() {
 
   } else if (simonCommand == "GS_TIMER") {
     simonOutput (simonCommand);
+    String colorRGB = getValue(inputString, ':', 2);
+    
+    String colorRed = getValue(colorRGB, '-', 0);
+    String colorGreen = getValue(colorRGB, '-', 1);
+    String colorBlue = getValue(colorRGB, '-', 2);
+    
+    String colorTime = getValue(inputString, ':', 3);
+    simonOutput(deviceInput + ":" + colorRed + ":"+ colorGreen + ":" + colorBlue + " TIME:" + colorTime);
+
+
+  } else if (simonCommand == "GS_END_GAME") {
+    simonOutput (simonCommand);
     //Call your timer function here
   
   } else if (simonCommand == "READ_BUTTONS") {
