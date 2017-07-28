@@ -79,7 +79,7 @@ void parseCommand () {
     simonOutput ("BTTN:1000");     
   
   } else {
-    simonOutput ("NOCMD: " + inputString);
+    simonOutput ("NOCMD:" + inputString);
   }
 
   // clear inputString 
@@ -139,7 +139,7 @@ void simonAssignDeviceName() {
       
     deviceName = getValue(inputString, ':', 1);
 
-    Serial.print("DEVICE ASSIGNED : ");
+    Serial.print("DEVICE ASSIGNED:");
     Serial.println(deviceName);
 
 }
