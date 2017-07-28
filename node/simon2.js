@@ -143,7 +143,7 @@ function stripAlphaChars(source) {
 ////////////////
 // the ardie sent us data
 function receiveSerialData(comName, data) {
-  console.log( String(data));
+  console.log(comName + " : " + String(data));
   //process.stdout.write(data);
 
 
@@ -608,7 +608,8 @@ function loop () {
         }
         if ( bFoundAll) {
            console.log("found all");
-           gameState = GS_ATTRACT;
+           setTimeout(function() { gameState = GS_ATTRACT;}, 1000);
+           //gameState = GS_ATTRACT;
         }
         break;
 
