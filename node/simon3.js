@@ -39,7 +39,41 @@ var rgbs = [
   {"r" : 255, "g" : 255, "b" : 0, "rgb" : "255-255-0" },  // SIMON_YELLOW
 ]
 
+// data is an array [] where each element will be sent a:b:c
+function sendCommand(buttonId, cmd, data) {
+  cmdString = "";
+  switch ( buttonId) {
+    case SIMON_CENTER:
+      cmdString = "CENTER:";
+      break;
+    case SIMON_RED:
+      cmdString = "RED:";
+      break;
+    case SIMON_GREEN:
+      cmdString = "GREEN:";
+      break;
+    case SIMON_BLUE:
+      cmdString = "BLUE:";
+      break;
+    case SIMON_YELLOW:
+      cmdString = "YELLOW:";
+      break;
+  }
 
+  cmdString += cmd
+  if ( data ) {
+    i = 0;
+    while ( i < data.length) {
+      cmdString += ":" + data[i].toString();
+      i++;
+    }
+
+  }
+
+  console.log("SENDING " + buttonId.toString() + "==" + cmdString);
+  simonPorts[buttonId].port.write (cmdString + '\n');
+
+}
 
 ////////////////////////////////////
 // setup functions
@@ -50,8 +84,9 @@ var rgbs = [
 function makePort(comName) {
     console.log("makePort for " + comName)
     var port = {
-        'name' : comName,
+        'comName' : comName,
         'port' : new SerialPort( comName, {baudRate : 115200, autoOpen:false}),
+        'name':"",
         'onData' : function(data) {
             console.log("onData for " + comName);
             console.log(data);
@@ -69,10 +104,10 @@ function makePort(comName) {
 function setupHandlers(port) {
     console.log ("setting up ports");
 
-    //port.port.on('open', showPortOpen);
+    port.port.on('open', showPortOpen);
     port.port.on('data', port.onData);
-    //port.port.on('close', showPortClose);
-    //port.port.on('error', showError);
+    port.port.on('close', showPortClose);
+    port.port.on('error', showError);
 
 }
 
@@ -86,9 +121,6 @@ function setupHandlers(port) {
 
 
 function openPort (port) {
-  console.log("Open Port>>>>>>>");
-  console.log(port.port.path);
-  console.log("<<<<<<<");
   port.port.open(function(error) {
       if (error) {
         console.log('failed to open port: ' + error);
@@ -123,18 +155,14 @@ function receiveSerialData(comName, data) {
     console.log("receiveSerialData:" + comName + ":" + data);
     if ( gameState == GS_INIT || gameState == GS_WAIT ) {
         if ( data.search("NAME:") > -1 ) {
-            console.log("got NAME:");
             if ( data.search("CENTER") > -1 ) {
-                console.log("...center");
                 simonPorts[SIMON_CENTER] = ports[comName];
             }
             if ( data.search("REDYELLOW") > -1 ) {
-                console.log("...redyellow");
                 simonPorts[SIMON_RED] = ports[comName];
                 simonPorts[SIMON_YELLOW] = ports[comName];
             }
             if ( data.search("BLUEGREEN") > -1 ) {
-                console.log("...bluegreen");
                 simonPorts[SIMON_BLUE] = ports[comName];
                 simonPorts[SIMON_GREEN] = ports[comName];
             }
@@ -184,7 +212,8 @@ function receiveSerialData(comName, data) {
 // reads one button
 function readButton(btnId) {
   console.log("readbutton of " + btnId.toString());
-  simonPorts[btnId].port.write ('READ_BUTTONS' + '\n');
+  sendCommand(btnId, "READ_BUTTONS", null);
+  //simonPorts[btnId].port.write ('READ_BUTTONS' + '\n');
 }
 
 ////////////////
@@ -199,10 +228,10 @@ function readAllButtons(resetWeights) {
   }
 
   console.log("Read Buttons")
-  simonPorts[SIMON_RED].port.write ('READ_BUTTONS' + '\n');
-  simonPorts[SIMON_GREEN].port.write ('READ_BUTTONS' + '\n');
-  //simonPorts[SIMON_BLUE].port.write ('READ_BUTTONS' + '\n');
-  //simonPorts[SIMON_YELLOW].port.write ('READ_BUTTONS' + '\n');
+  sendCommand(SIMON_RED, "READ_BUTTONS", null);
+  sendCommand(SIMON_GREEN, "READ_BUTTONS", null);
+  sendCommand(SIMON_BLUE, "READ_BUTTONS", null);
+  sendCommand(SIMON_YELLOW, "READ_BUTTONS", null);
 
 }
 
@@ -283,17 +312,17 @@ function testFakeButtonPress(ok) {
 ////////////////
 // lights up the specified color and triggers the correct sound
 function showColor(coloridx, howLong) {
-  console.log("ShowColor: " + coloridx.toString() );
+  console.log("ShowColor: " + coloridx.toString() + " for " + howLong.toString());
 
   // send to raspberryPi
   // TBD
 
   // trigger audino
-  simonPorts[SIMON_CENTER].port.write("GS_FLASCOLOR:" + rgbs[coloridx]['rgb'] + ":" + howLong.toString());
-
+  sendCommand(SIMON_CENTER, "FLASHCOLOR", [ rgbs[coloridx]['rgb'], howLong]);
+  
   // temporary check in case we don't have all four colors hooked up 
   if (coloridx < simonPorts.length) {
-    simonPorts[coloridx].port.write("GS_FLASHCOLOR:" + rgbs[coloridx]['rgb'] + ":" + howLong.toString());
+    sendCommand(coloridx, "FLASHCOLOR", [ rgbs[coloridx]['rgb'], howLong]);
   }
 
 }
@@ -304,12 +333,13 @@ function showColor(coloridx, howLong) {
 // where we are in simon's sequence
 var simonSequenceIdx = 0;
 var simonIntervalTimer = null;
+var simonms = 0;
 
 ////////////////
 // shows the next color and sets a timer
 function showNextSimonColor() {
   if ( simonSequenceIdx < simonsSequence.length) {
-    showColor(simonsSequence[simonSequenceIdx], simonIntervalTimer);
+    showColor(simonsSequence[simonSequenceIdx], simonms);
     simonSequenceIdx++;
   }
   else {
@@ -340,7 +370,7 @@ function showSimonsSequence(gameOver) {
   console.log("Showing simon's sequence");
   simonSequenceIdx = 0;
   // how fast do we show simon?
-  var simonms = 0;
+  simonms = 0;
   if ( gameOver ) {
     simonms = 500;
   }
@@ -373,7 +403,8 @@ function startPlayersTimer() {
 
   // send message to center arduino
   // TBD
-  simonPorts[SIMON_CENTER].port.write("GS_TIMER:" + timerms.toString());
+  sendCommand(SIMON_CENTER, "GS_TIMER", [timerms]);
+  //simonPorts[SIMON_CENTER].port.write("GS_TIMER:" + timerms.toString());
 
   // when time is up, read the buttons
   setTimeout(function(){
@@ -585,7 +616,8 @@ function loop () {
       //readButton(SIMON_GREEN);
       if (buttonWeights[SIMON_RED] > 0) {
         console.log ("Button Pushed :: Start Game");
-        simonPorts[SIMON_CENTER].port.write ('GS_COMPUTER' + '\n');
+        sendCommand(SIMON_CENTER, "GS_COMPUTER", null);
+        //simonPorts[SIMON_CENTER].port.write ('GS_COMPUTER' + '\n');
         newGame();
       }
       ////////////
