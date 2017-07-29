@@ -79,10 +79,11 @@ function sendCommand(buttonId, cmd, data) {
 // setup functions
 //
 
-
+var inputStrings = {};
 
 function makePort(comName) {
     console.log("makePort for " + comName)
+    inputStrings[comName] = "";
     var port = {
         'comName' : comName,
         'port' : new SerialPort( comName, {baudRate : 115200, autoOpen:false}),
@@ -91,7 +92,15 @@ function makePort(comName) {
             console.log("onData for " + comName);
             console.log(data);
             console.log("-----");
-            receiveSerialData(comName, data.toString());
+            inputStrings[comName] += data.toString();
+            console.log("inputStrings[comName]:" +inputStrings[comName]);
+            if (inputStrings[comName].indexOf('\r\n') > -1 ) {
+              cmd = inputStrings[comName].substring(0, inputStrings[comName].indexOf('\r\n'));
+              inputStrings[comName] = inputStrings[comName].substring(inputStrings[comName].indexOf('\r\n') + 2);
+              console.log("...new inputStrings[comName]:" + inputStrings[comName]);
+              receiveSerialData(comName, cmd);
+            }
+            //receiveSerialData(comName, data.toString());
         }
     }
     return port;
@@ -153,18 +162,20 @@ function stripAlphaChars(source) {
 
 ////////////////
 // the ardie sent us data
-function receiveSerialData(comName, data) {
-    console.log("receiveSerialData:" + comName + ":" + data);
+function receiveSerialData(comName, cmd) {
+    console.log("receiveSerialData:" + comName + ":" + cmd);
+    
+    console.log("... parsed" + cmd);
     if ( gameState == GS_INIT || gameState == GS_WAIT ) {
-        if ( data.search("NAME:") > -1 ) {
-            if ( data.search("CENTER") > -1 ) {
+        if ( cmd.search("NAME:") > -1 ) {
+            if ( cmd.search("CENTER") > -1 ) {
                 simonPorts[SIMON_CENTER] = ports[comName];
             }
-            if ( data.search("REDYELLOW") > -1 ) {
+            if ( cmd.search("REDYELLOW") > -1 ) {
                 simonPorts[SIMON_RED] = ports[comName];
                 simonPorts[SIMON_YELLOW] = ports[comName];
             }
-            if ( data.search("BLUEGREEN") > -1 ) {
+            if ( cmd.search("BLUEGREEN") > -1 ) {
                 simonPorts[SIMON_BLUE] = ports[comName];
                 simonPorts[SIMON_GREEN] = ports[comName];
             }
@@ -174,7 +185,7 @@ function receiveSerialData(comName, data) {
 
   var ardId = -1;
 
-  cmdparts = data.toString().split(":");
+  cmdparts = cmd.toString().split(":");
   
 
   console.log("command " + cmdparts[0]);  
