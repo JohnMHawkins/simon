@@ -17,19 +17,26 @@ enum LedState {
   PATTERN,
   RAINBOW,
   COUNTDOWN,
-  FLASH
+  FLASH,
+  STREAK
 };
 
 
 //load cells
-int loadSample = 5;
-const int totalLoadCells = 1;
+int b1_loadSample = 5;
+const int b1_totalLoadCells = 1;
 
-const byte hx711_data_pin[] = {A1, A4, A6, A8};
-const byte hx711_clock_pin[] = {A0, A5, A7, A9};
+int b2_loadSample = 5;
+const int b2_totalLoadCells = 1;
 
-HX711 loadCells[totalLoadCells];
-HX711 loadCell;
+const byte b1_hx711_data_pin[] = {A0};
+const byte b1_hx711_clock_pin[] = {A2};
+
+const byte b2_hx711_data_pin[] = {A1};
+const byte b2_hx711_clock_pin[] = {A3};
+
+HX711 b1_loadCells[b1_totalLoadCells];
+HX711 b2_loadCells[b2_totalLoadCells];
 
 
 //light settings
@@ -73,6 +80,22 @@ LedState ledState = RAINBOW;
 
 //init attract vars
 uint8_t gHue = 0;
+
+//lightStreak vars
+int streakAmmount;
+int streakTime;
+int streakFade;
+int streakFadeAmmount;
+
+#define maxStreakAmmount 99
+
+CRGB streaks[maxStreakAmmount];
+int streakPos[maxStreakAmmount];
+int streakDirections[maxStreakAmmount];
+
+int streakColorAmmount = 3;
+CRGB streakColors[] = {CRGB::Red, CRGB::Green, CRGB::Blue};
+
 
 
 //init colorPattern vars
@@ -148,14 +171,20 @@ void setup() {
   //  colorPatternThread.enabled = false;
   //  tController.add(&colorPatternThread);
 
-
+  //init name
+  simonAssignDeviceName();
   //init load cells
-  for (int i = 0; i < totalLoadCells; i++)
+  for (int i = 0; i < b1_totalLoadCells; i++)
   {
-    loadCells[i].begin(hx711_clock_pin[i], hx711_data_pin[i]);
+    b1_loadCells[i].begin(b1_hx711_data_pin[i], b1_hx711_clock_pin[i]);
   }
-  tar();
-  loadCell.begin(A0, A1);
+  for (int i = 0; i < b2_totalLoadCells; i++)
+  {
+    b2_loadCells[i].begin(b2_hx711_data_pin[i], b2_hx711_clock_pin[i]);
+  }
+  tar(1);
+  tar(2);
+  //loadCell.begin(A0, A1);
 
 
   //init leds
@@ -163,6 +192,33 @@ void setup() {
   delay(1000);
   FastLED.setBrightness(BRIGHTNESS);
   FastLED.show();
+}
+
+int getLoadCellPin(String input)
+{
+  if (deviceName == "REDYELLOW")
+  {
+    if (input == "RED")
+    {
+      return 1;
+    }
+    else if (input == "YELLOW")
+    {
+      return 2;
+    }
+  }
+  else if (deviceName == "BLUEGREEN")
+  {
+    if (input == "BLUE")
+    {
+      return 1;
+    }
+    else if (input == "GREEN")
+    {
+      return 2;
+    }
+  }
+  return 1;
 }
 
 void setupIDPin() {
@@ -185,6 +241,8 @@ void setupIDPin() {
 
 void loop() {
   //  tController.run();
+  //Serial.println(getWeight(1));
+
   if (colorTimer > 0)
   {
     colorTimer --;
@@ -206,7 +264,7 @@ void loop() {
       break;
 
     case WEIGHT:
-      weightColor();
+      weightColor(1);
       break;
 
     case COUNTDOWN:
@@ -214,6 +272,9 @@ void loop() {
       break;
 
     case FLASH:
+      break;
+
+    case STREAK:
       break;
   }
 
@@ -293,7 +354,8 @@ void processSimonCommand() {
 
   } else if (simonCommand == "GS_COMPUTER") {
     simonOutput (simonCommand);
-    setSolidColor(CRGB::Orange);
+    //setSolidColor(CRGB::Orange);
+    lightStreak(1, 1000, 50);
     //Call compiter function here
 
   } else if (simonCommand == "GS_TIMER") {
@@ -316,7 +378,15 @@ void processSimonCommand() {
 
   } else if (simonCommand == "READ_BUTTONS") {
     //create test button data, replace with real button function
-    simonOutput ("BTTN:" + String(getWeight()));
+    int tmpDeviceNum = getLoadCellPin(deviceInput);
+    if (tmpDeviceNum == 1)
+    {
+      simonOutput ("BTTN:" + String(getWeight(1)));
+    }
+    else if (tmpDeviceNum == 2)
+    {
+      simonOutput ("BTTN:" + String(getWeight(2)));
+    }
 
   } else {
     simonOutput ("NOCMD:" + simonCommand);
@@ -430,25 +500,46 @@ void ledPattern(int interval) {
 
 //void ledSolid(CRGB)
 
-void tar()
+void tar(int button)
 {
-  for (int i = 0; i < totalLoadCells; i++)
+  if (button == 1)
   {
-    loadCells[i].tare();
+    for (int i = 0; i < b1_totalLoadCells; i++)
+    {
+      b1_loadCells[i].tare();
+    }
+  } else if (button == 2)
+  {
+    for (int i = 0; i < b2_totalLoadCells; i++)
+    {
+      b2_loadCells[i].tare();
+    }
   }
 }
 
-int getWeight()
+int getWeight(int button)
 {
   int load = 0;
 
-  for (int i = 0; i < totalLoadCells; i++)
+  if (button == 1)
   {
-    load += loadCells[i].get_value(loadSample) / 10;
+    for (int i = 0; i < b1_totalLoadCells; i++)
+    {
+      load += b1_loadCells[i].get_value() / 10;
+    }
+
+    load = load / b1_totalLoadCells;
   }
+  else if (button == 2)
+  {
+    for (int i = 0; i < b2_totalLoadCells; i++)
+    {
+      load += b2_loadCells[i].get_value() / 10;
+    }
 
-  load = load / totalLoadCells;
+    load = load / b2_totalLoadCells;
 
+  }
   return load;
 }
 
@@ -528,28 +619,60 @@ void flashColorsCallback()
   }
 }
 
-////lightStreak vars
-//int steakAmmount;
-//int minStreakTime;
-//int maxSteakTime;
-//int streakFade;
-//
-//CRGB streaks[99];
-//int streakPos[99]
-//int streakSpeeds[99]
-//
-//int streakColorAmmount = 3;
-//CRGB streakColors = {CRGB::Red, CRGB::Green, CRGB::Blue);
-//
-//void lightStreak (int _ammount, int minTime, int maxTime, int fade)
-//{
-//  
-//}
-//
-//void lightStrakCallback
-//{
-//
-//}
+void lightStreak (int _ammount, int _time, int fade)
+{
+  streakAmmount = _ammount;
+  streakFadeAmmount = fade;
+  ledState = STREAK;
+  fill_solid(leds, NUM_LEDS, CRGB::Black);
+  FastLED.show();
+
+  for (int i = 0; i < streakAmmount; i++)
+  {
+    streakPos[i] = random(0, NUM_LEDS);
+    if (random(0, 2) == 1)
+    {
+      streakDirections[i] = 1;
+    }
+    else
+    {
+      streakDirections[i] = -1;
+    }
+
+    streaks[i] = streakColors[random(0, streakColorAmmount)];
+  }
+
+  unsigned long _interval = 1000l * (streakTime / NUM_LEDS);
+  Timer3.setPeriod(_interval);
+  Timer3.restart();
+  Timer3.attachInterrupt(lightStreakCallback);
+
+}
+
+void lightStreakCallback()
+{
+  for (int i = 0; i < streakAmmount; i++)
+  {
+    leds[streakPos[i]] += streaks[i];
+    streakPos[i] += streakDirections[i];
+    if (streakPos[i] < 0)
+    {
+      streakPos[i] = NUM_LEDS - 1;
+    }
+    if (streakPos[i] >= NUM_LEDS)
+    {
+      streakPos[i] = 0;
+    }
+  }
+
+  if (ledState != STREAK)
+  {
+    fill_solid(leds, NUM_LEDS, CRGB::Black);
+    Timer3.detachInterrupt();
+  }
+  fadeToBlackBy(leds, NUM_LEDS, 50);
+}
+
 
 void countdown(CRGB _color, int _time)
 {
@@ -600,11 +723,18 @@ void updateColor() {
   fill_solid( leds, NUM_LEDS, solidColor);
 }
 
-void weightColor() {
+void weightColor(int button) {
   fill_solid( leds, NUM_LEDS, solidColor);
+  int brightness;
 
-  int brightness = getWeight() / weightModifier;
-
+  if (button == 1)
+  {
+    brightness = getWeight(1) / weightModifier;
+  }
+  else if (button == 2)
+  {
+    brightness = getWeight(2) / weightModifier;
+  }
   if (brightness > 255)
   {
     brightness = 255;
