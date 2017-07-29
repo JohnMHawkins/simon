@@ -149,6 +149,8 @@ function stripAlphaChars(source) {
 }
 
 
+
+
 ////////////////
 // the ardie sent us data
 function receiveSerialData(comName, data) {
@@ -172,39 +174,33 @@ function receiveSerialData(comName, data) {
 
   var ardId = -1;
 
+  cmdparts = data.toString().split(":");
+  
+
+  console.log("command " + cmdparts[0]);  
    
-  if (data.toString().indexOf("SIMON_CENTER") > -1) {
+  if ( cmdparts[0].indexOf("[CENTER]") > -1 ) {
     ardId = SIMON_CENTER;
-  } else if (data.toString().indexOf("SIMON_RED") > -1) {
+  } else if ( cmdparts[0].indexOf("[RED]") > -1 ) {
     ardId = SIMON_RED;
-  } else if (data.toString().indexOf("SIMON_GREEN") > -1) {
+  } else if ( cmdparts[0].indexOf("[GREEN]") > -1 ) {
     ardId = SIMON_GREEN;
-  } else if (data.toString().indexOf("SIMON_BLUE") > -1) {
+  } else if ( cmdparts[0].indexOf("[BLUE]") > -1 ) {
     ardId = SIMON_BLUE;
-  } else if (data.toString().indexOf("SIMON_YELLOW") > -1) {
+  } else if ( cmdparts[0].indexOf("[YELLOW]") > -1)  {
     ardId = SIMON_YELLOW;
   }
 
-  var bttnIdx = data.toString().indexOf("BTTN:");
-  
-  // put other data the button can send here
-  //var fooIdx = data.toString().indexOf("FOO:")
-
-  switch ( ardId ) {
-    case SIMON_CENTER:
-      break;
-
-    case SIMON_RED:
-    case SIMON_GREEN:
-    case SIMON_BLUE:
-    case SIMON_YELLOW:
-      if (bttnIdx > -1){
-        buttonWeights[ardId] = parseInt(data.toString().substring(bttnIdx+5),10);
-        console.log("read button " + ardId.toString() + " : " + buttonWeights[ardId].toString())
+  if ( cmdparts.length > 1 && ardId > 0) {
+    if (cmdparts[1] == "BTTN") {
+      if (cmdparts.length > 2) {
+        weight = parseInt(cmdparts[2])
+        console.log("...get weight " + weight.toString() + " for " + ardId.toString());
+        buttonWeights[ardId] = weight;
       }
-      break;
+    }
   }
-
+  
 
 }
 
@@ -412,7 +408,7 @@ function startPlayersTimer() {
     readAllButtons(true);
     // uncomment to run self-test sequence
     if ( autotest ) {
-      testFakeButtonPress(playerSequence.length < 15);
+      //testFakeButtonPress(playerSequence.length < 15);
     }
   
     gameState = GS_PLAYER;
