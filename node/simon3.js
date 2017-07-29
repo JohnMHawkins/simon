@@ -3,7 +3,7 @@ var SerialPort = require('serialport');
 ////////////////
 
 // set to true to run self-test
-var autotest = true;
+var autotest = false;
 
 
 // the ports the arduinos are connected to
@@ -86,21 +86,18 @@ function makePort(comName) {
     inputStrings[comName] = "";
     var port = {
         'comName' : comName,
-        'port' : new SerialPort( comName, {baudRate : 115200, autoOpen:false}),
-        'name':"",
+        'port' : new SerialPort( comName, {baudRate : 9600, autoOpen:false}),
         'onData' : function(data) {
-            console.log("onData for " + comName);
-            console.log(data);
-            console.log("-----");
+            //console.log("onData for " + comName);
+            //console.log(data);
+            //console.log("-----");
             inputStrings[comName] += data.toString();
-            console.log("inputStrings[comName]:" +inputStrings[comName]);
             if (inputStrings[comName].indexOf('\r\n') > -1 ) {
               cmd = inputStrings[comName].substring(0, inputStrings[comName].indexOf('\r\n'));
               inputStrings[comName] = inputStrings[comName].substring(inputStrings[comName].indexOf('\r\n') + 2);
-              console.log("...new inputStrings[comName]:" + inputStrings[comName]);
               receiveSerialData(comName, cmd);
             }
-            //receiveSerialData(comName, data.toString());
+            
         }
     }
     return port;
@@ -163,9 +160,8 @@ function stripAlphaChars(source) {
 ////////////////
 // the ardie sent us data
 function receiveSerialData(comName, cmd) {
-    console.log("receiveSerialData:" + comName + ":" + cmd);
+    //console.log("receiveSerialData:" + comName + ":" + cmd);
     
-    console.log("... parsed" + cmd);
     if ( gameState == GS_INIT || gameState == GS_WAIT ) {
         if ( cmd.search("NAME:") > -1 ) {
             if ( cmd.search("CENTER") > -1 ) {
@@ -186,9 +182,8 @@ function receiveSerialData(comName, cmd) {
   var ardId = -1;
 
   cmdparts = cmd.toString().split(":");
-  
 
-  console.log("command " + cmdparts[0]);  
+  //console.log("command " + cmdparts[0] );  
    
   if ( cmdparts[0].indexOf("[CENTER]") > -1 ) {
     ardId = SIMON_CENTER;
@@ -220,7 +215,6 @@ function receiveSerialData(comName, cmd) {
 function readButton(btnId) {
   console.log("readbutton of " + btnId.toString());
   sendCommand(btnId, "READ_BUTTONS", null);
-  //simonPorts[btnId].port.write ('READ_BUTTONS' + '\n');
 }
 
 ////////////////
@@ -324,7 +318,7 @@ function showColor(coloridx, howLong) {
   // send to raspberryPi
   // TBD
 
-  // trigger audino
+  // trigger arduino
   sendCommand(SIMON_CENTER, "FLASHCOLOR", [ rgbs[coloridx]['rgb'], howLong, 1]);
   
   // temporary check in case we don't have all four colors hooked up 
