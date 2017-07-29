@@ -23,6 +23,8 @@ enum LedState {
 
 
 //load cells
+int buttonCutOff = 500;
+
 int b1_loadSample = 5;
 const int b1_totalLoadCells = 1;
 
@@ -45,7 +47,7 @@ HX711 b2_loadCells[b2_totalLoadCells];
 #define LED_TYPE    APA102
 #define COLOR_ORDER BGR
 #define NUM_LEDS    144
-#define BRIGHTNESS 10
+#define BRIGHTNESS 75
 
 CRGB leds[NUM_LEDS];
 
@@ -162,7 +164,7 @@ void setup() {
   setupIDPin();
 
   //init serial
-  Serial.begin (115200);
+  Serial.begin (9600);
   Serial.setTimeout (50);
   inputString.reserve(200);
 
@@ -355,7 +357,8 @@ void processSimonCommand() {
   } else if (simonCommand == "GS_COMPUTER") {
     simonOutput (simonCommand);
     //setSolidColor(CRGB::Orange);
-    lightStreak(1, 1000, 50);
+    attract();
+    //lightStreak(1, 1000, 50);
     //Call compiter function here
 
   } else if (simonCommand == "GS_TIMER") {
@@ -540,7 +543,7 @@ int getWeight(int button)
     load = load / b2_totalLoadCells;
 
   }
-  if (load < 0)
+  if (load < buttonCutOff)
   {
     load = 0;
   }
@@ -711,7 +714,7 @@ void countdownCallback () {
   {
     countdownIndex = 0;
     fill_solid(leds, NUM_LEDS, CRGB::Black);
-    Serial.println("Timer Done");
+    //Serial.println("Timer Done");
     Timer3.detachInterrupt();
   }
 }
