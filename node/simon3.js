@@ -314,11 +314,11 @@ function showColor(coloridx, howLong) {
   // TBD
 
   // trigger audino
-  sendCommand(SIMON_CENTER, "FLASHCOLOR", [ rgbs[coloridx]['rgb'], howLong]);
+  sendCommand(SIMON_CENTER, "FLASHCOLOR", [ rgbs[coloridx]['rgb'], howLong, 1]);
   
   // temporary check in case we don't have all four colors hooked up 
   if (coloridx < simonPorts.length) {
-    sendCommand(coloridx, "FLASHCOLOR", [ rgbs[coloridx]['rgb'], howLong]);
+    sendCommand(coloridx, "FLASHCOLOR", [ rgbs[coloridx]['rgb'], howLong, 1]);
   }
 
 }
@@ -399,7 +399,7 @@ function startPlayersTimer() {
 
   // send message to center arduino
   // TBD
-  sendCommand(SIMON_CENTER, "GS_TIMER", [timerms]);
+  sendCommand(SIMON_CENTER, "GS_TIMER", ["255-255-255",  timerms]);
   //simonPorts[SIMON_CENTER].port.write("GS_TIMER:" + timerms.toString());
 
   // when time is up, read the buttons
