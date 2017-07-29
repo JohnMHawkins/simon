@@ -485,7 +485,10 @@ function makePlayersChoice() {
         // they got it!   computer's turn
         console.log("++++ player got entire sequence");
         playerSequence = [];
-        gameState = GS_COMPUTER;  // computer's turn
+        setTimeout(function () {
+          gameState = GS_COMPUTER;  // computer's turn
+        }, 600);
+        
       }
       else {
         // so far so good, but they haven't finished the sequence yet, start timer for next button
