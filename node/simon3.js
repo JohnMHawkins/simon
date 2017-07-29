@@ -75,6 +75,14 @@ function sendCommand(buttonId, cmd, data) {
 
 }
 
+function sendCommandToAll(cmd, data) {
+  sendCommand(SIMON_CENTER, cmd, data);
+  sendCommand(SIMON_RED, cmd, data);
+  sendCommand(SIMON_GREEN, cmd, data);
+  sendCommand(SIMON_BLUE, cmd, data);
+  sendCommand(SIMON_YELLOW, cmd, data);
+}
+
 ////////////////////////////////////
 // setup functions
 //
@@ -348,9 +356,10 @@ function showNextSimonColor() {
     if ( simonIntervalTimer ) {
       clearInterval(simonIntervalTimer);
     }
-    if ( gameState == GS_GAME_OVER) {
+    if ( gameState == GS_REPLAY) {
       // go back to attract mode
-      gameState = GS_ATTRACT;
+      gotoAttract();
+      
     }
     else {
       startPlayersTimer();
@@ -363,7 +372,7 @@ function showNextSimonColor() {
 // playes the entire simon sequence
 function showSimonsSequence(gameOver) {
   if ( gameOver ) {
-    gameState = GS_GAME_OVER;
+    gameState = GS_REPLAY;
   }
   else {
     gameState = GS_SHOWINGSEQ;  // set this so the game loop doesn't re-enter here
@@ -501,10 +510,22 @@ function makePlayersChoice() {
 // show the game over sequence
 function gameOver() {
   // buzz 
-  showSimonsSequence(true);
+  // send GS_GAME_OVER to all arduinos
+  sendCommandToAll("FLASHCOLOR", [rgbs[SIMON_RED]['rgb'],500,3] );
 
+  setTimeout(function(){
+    gameState = GS_REPLAY;
+    showSimonsSequence(true);
+
+  }, 3000);
+
+  
 }
 
+function gotoAttract() {
+  sendCommandToAll("GS_ATTRACT", []);
+  gameState = GS_ATTRACT;
+}
 
 ////////////////
 // start a brand new game
@@ -566,6 +587,7 @@ const GS_TIMER      = 4;  // timer is running down, just wait...
 const GS_PLAYER     = 5;  // timer ran our, figure out what button the player pushed
 const GS_EVALUATING = 6;  // evaluate if the player pushed the right button
 const GS_GAME_OVER  = 7; // player got the sequence wrong...
+const GS_REPLAY     = 8; // replaying the final sequence
 
 var gameState = GS_INIT;
 
@@ -604,7 +626,7 @@ function loop () {
             }
             console.log("GS_WAIT gotAll = " + bGotAll.toString());
             if ( bGotAll ) {
-                gameState = GS_ATTRACT;
+              gotoAttract();
             }
             else {
                 setupArduinos();
@@ -653,6 +675,9 @@ function loop () {
 
     case GS_GAME_OVER:
       // showing the game over sequence, then returning to attract mode
+      break;
+
+    case GS_REPLAY:
       break;
   }
 
