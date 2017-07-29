@@ -540,6 +540,10 @@ int getWeight(int button)
     load = load / b2_totalLoadCells;
 
   }
+  if (load < 0)
+  {
+    load = 0;
+  }
   return load;
 }
 
