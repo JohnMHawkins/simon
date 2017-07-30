@@ -1,10 +1,14 @@
 var SerialPort = require('serialport');
+var http = require("http");
 
 ////////////////
 
 // set to true to run self-test
-var autotest = false;
+var autotest = true;
 
+var dmxControllers = [
+    "192.168.0.110"
+];
 
 const LOG_ERROR = 0;
 const LOG_DEBUG = 1;
@@ -52,6 +56,40 @@ function LOG(level, msg) {
 
 }
 
+const DMX_OFF = 0
+const DMX_RGB = 1
+
+
+// send to dmxControllers
+function sendDMX(buttonId, cmd, data) {
+
+    if ( buttonId < dmxControllers.length ) {
+        var options = {
+          host: dmxControllers[buttonId],
+          path: '/dmx/cmd/'
+        };
+        //url = dmxControllers[buttonId] + '/dmx/cmd/';
+        
+        switch ( cmd) {
+            case DMX_OFF:
+                options.path += "off";
+                break;
+
+            case DMX_RGB:
+                options.path += 'rgb?i=255&r=' + data.r.toString() + '&g=' + data.g.toString() + '&b=' + data.b.toString();
+                if ( data.duration > 0 ) {
+                    setTimeout(function() {
+                        // send the off 
+                        sendDMX(buttonId, DMX_OFF, null);
+                    }, data.duration);
+                }
+                break;
+        }
+
+        http.get(options, function(res){});
+
+    }
+}
 
 // data is an array [] where each element will be sent a:b:c
 function sendCommand(buttonId, cmd, data) {
@@ -341,6 +379,7 @@ function showColor(coloridx, howLong) {
 
   // send to raspberryPi
   // TBD
+  sendDMX(SIMON_CENTER, DMX_RGB, {r: rgbs[coloridx]['r'],g: rgbs[coloridx]['g'],b: rgbs[coloridx]['b'],duration:howLong - 50 });
 
   // trigger arduino
   sendCommand(SIMON_CENTER, "FLASHCOLOR", [ rgbs[coloridx]['rgb'], howLong, 1]);
