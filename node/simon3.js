@@ -5,6 +5,11 @@ var SerialPort = require('serialport');
 // set to true to run self-test
 var autotest = false;
 
+var loglevel = 1;
+
+const LOG_ERROR = 0;
+const LOG_DEBUG = 1;
+const LOG_INFO  = 2;
 
 // the ports the arduinos are connected to
 const SIMON_CENTER = 0;
@@ -39,6 +44,13 @@ var rgbs = [
   {"r" : 255, "g" : 255, "b" : 0, "rgb" : "255-255-0" },  // SIMON_YELLOW
 ]
 
+function LOG(level, msg) {
+  if (level <= loglevel ) {
+    console.log(msg + " (" + new Date().getTime().toString() + ")");
+  }
+
+}
+
 // data is an array [] where each element will be sent a:b:c
 function sendCommand(buttonId, cmd, data) {
   cmdString = "";
@@ -70,7 +82,7 @@ function sendCommand(buttonId, cmd, data) {
 
   }
 
-  console.log("SENDING " + buttonId.toString() + "==" + cmdString);
+  LOG(LOG_INFO,"SENDING " + buttonId.toString() + "==" + cmdString);
   simonPorts[buttonId].port.write (cmdString + '\n');
 
 }
@@ -90,15 +102,15 @@ function sendCommandToAll(cmd, data) {
 var inputStrings = {};
 
 function makePort(comName) {
-    console.log("makePort for " + comName)
+    LOG(LOG_DEBUG, "makePort for " + comName)
     inputStrings[comName] = "";
     var port = {
         'comName' : comName,
         'port' : new SerialPort( comName, {baudRate : 9600, autoOpen:false}),
         'onData' : function(data) {
-            //console.log("onData for " + comName);
-            //console.log(data);
-            //console.log("-----");
+            LOG(LOG_INFO, "onData for " + comName);
+            LOG(LOG_INFO, data);
+            LOG(LOG_INFO, "-----");
             inputStrings[comName] += data.toString();
             if (inputStrings[comName].indexOf('\r\n') > -1 ) {
               cmd = inputStrings[comName].substring(0, inputStrings[comName].indexOf('\r\n'));
@@ -116,7 +128,7 @@ function makePort(comName) {
 ////////////////
 // tells the ports what functions should handle each event
 function setupHandlers(port) {
-    console.log ("setting up ports");
+    LOG(LOG_DEBUG, "setting up ports");
 
     port.port.on('open', showPortOpen);
     port.port.on('data', port.onData);
@@ -137,21 +149,21 @@ function setupHandlers(port) {
 function openPort (port) {
   port.port.open(function(error) {
       if (error) {
-        console.log('failed to open port: ' + error);
+        LOG(LOG_ERROR, 'failed to open port: ' + error);
       }
   });
 }
 
 function showPortOpen(path, options) {
-  console.log('port open. Data rate: ' + path + " : " + options);
+  LOG(LOG_ERROR, 'port open. Data rate: ' + path + " : " + options);
 }
 
 function showPortClose() {
-   console.log('port closed.');
+   LOG(LOG_ERROR, 'port closed.');
 }
  
 function showError(error) {
-   console.log('Serial port error: ' + error);
+   LOG(LOG_ERROR, 'Serial port error: ' + error);
 }
 
 
@@ -168,7 +180,7 @@ function stripAlphaChars(source) {
 ////////////////
 // the ardie sent us data
 function receiveSerialData(comName, cmd) {
-    //console.log("receiveSerialData:" + comName + ":" + cmd);
+    LOG(LOG_INFO, "receiveSerialData:" + comName + ":" + cmd);
     
     if ( gameState == GS_INIT || gameState == GS_WAIT ) {
         if ( cmd.search("NAME:") > -1 ) {
@@ -209,7 +221,7 @@ function receiveSerialData(comName, cmd) {
     if (cmdparts[1] == "BTTN") {
       if (cmdparts.length > 2) {
         weight = parseInt(cmdparts[2])
-        console.log("...get weight " + weight.toString() + " for " + ardId.toString());
+        LOG(LOG_INFO, "...get weight " + weight.toString() + " for " + ardId.toString());
         buttonWeights[ardId] = weight;
       }
     }
@@ -221,7 +233,7 @@ function receiveSerialData(comName, cmd) {
 ////////////////
 // reads one button
 function readButton(btnId) {
-  console.log("readbutton of " + btnId.toString());
+  LOG(LOG_INFO, "readbutton of " + btnId.toString());
   sendCommand(btnId, "READ_BUTTONS", null);
 }
 
@@ -236,7 +248,7 @@ function readAllButtons(resetWeights) {
     }
   }
 
-  console.log("Read Buttons")
+  LOG(LOG_INFO, "Read Buttons")
   sendCommand(SIMON_RED, "READ_BUTTONS", null);
   sendCommand(SIMON_GREEN, "READ_BUTTONS", null);
   sendCommand(SIMON_BLUE, "READ_BUTTONS", null);
@@ -264,7 +276,7 @@ function getPressedButton() {
     idx = idx + 1;
   }
 
-  console.log("button pushed is..." + maxWeightIdx.toString());
+  LOG(LOG_DEBUG, "button pushed is..." + maxWeightIdx.toString());
 
   return maxWeightIdx;
 
@@ -276,7 +288,7 @@ function getPressedButton() {
 //
 function testFakeButtonPress(ok) {
 
-  console.log("player sequence length " + playerSequence.length.toString())
+  LOG(LOG_DEBUG, "player sequence length " + playerSequence.length.toString())
   correctIdx = simonsSequence[playerSequence.length];
 
   for ( idx = FIRST_BUTTON; idx <= LAST_BUTTON; idx++ ) {
@@ -321,7 +333,7 @@ function testFakeButtonPress(ok) {
 ////////////////
 // lights up the specified color and triggers the correct sound
 function showColor(coloridx, howLong) {
-  console.log("ShowColor: " + coloridx.toString() + " for " + howLong.toString());
+  LOG(LOG_DEBUG, "ShowColor: " + coloridx.toString() + " for " + howLong.toString());
 
   // send to raspberryPi
   // TBD
@@ -377,7 +389,7 @@ function showSimonsSequence(gameOver) {
   else {
     gameState = GS_SHOWINGSEQ;  // set this so the game loop doesn't re-enter here
   }
-  console.log("Showing simon's sequence");
+  LOG(LOG_DEBUG, "Showing simon's sequence");
   simonSequenceIdx = 0;
   // how fast do we show simon?
   simonms = 0;
@@ -403,7 +415,7 @@ function showSimonsSequence(gameOver) {
 // starts the timer for the player to pick their button
 function startPlayersTimer() {
   gameState = GS_TIMER;
-  console.log("Starting player's timer");
+  LOG(LOG_DEBUG, "Starting player's timer");
   l = simonsSequence.lenth;
 
   timerms = 3000; // 3 seconds unless...
@@ -446,10 +458,10 @@ var playerSequence = []
 ////////////////
 // pick a new color to add, then show the sequence
 function addNewColor() {
-  console.log("Add new color");
+  LOG(LOG_DEBUG, "Add new color");
   var coloridx = Math.floor(Math.random() * (LAST_BUTTON + 1 - FIRST_BUTTON) + FIRST_BUTTON);
   simonsSequence.push(coloridx);
-  console.log(simonsSequence)
+  LOG(LOG_DEBUG, simonsSequence)
   showSimonsSequence(false);
 
 }
@@ -475,7 +487,7 @@ function makePlayersChoice() {
   var selected = getPressedButton();
   if ( selected > -1 ) {
     gameState = GS_EVALUATING;  // set this so the loop doesn't re-enter this function
-    console.log("Make player choice");
+    LOG(LOG_DEBUG, "Make player choice");
     playerSequence.push(selected);
 
     if ( checkPattern() ) {
@@ -483,7 +495,7 @@ function makePlayersChoice() {
       showColor(selected, 500);
       if ( playerSequence.length == simonsSequence.length ) {
         // they got it!   computer's turn
-        console.log("++++ player got entire sequence");
+        LOG(LOG_DEBUG, "++++ player got entire sequence");
         playerSequence = [];
         setTimeout(function () {
           gameState = GS_COMPUTER;  // computer's turn
@@ -499,7 +511,7 @@ function makePlayersChoice() {
     }
     else {
       // bzzzzzz - failed, game over
-      console.log("GAME OVER!!!!");
+      LOG(LOG_DEBUG, "PLAYER FAILED!!!!!!");
       gameOver();
 
     }
@@ -514,9 +526,11 @@ function makePlayersChoice() {
 function gameOver() {
   // buzz 
   // send GS_GAME_OVER to all arduinos
+  LOG(LOG_DEBUG, "calling gameOver, gamestate = " + gameState.toString())
   sendCommandToAll("FLASHCOLOR", [rgbs[SIMON_RED]['rgb'],500,3] );
 
   setTimeout(function(){
+    LOG(LOG_DEBUG, "Setting GS to GS_REPLAY");
     gameState = GS_REPLAY;
     showSimonsSequence(true);
 
@@ -526,6 +540,7 @@ function gameOver() {
 }
 
 function gotoAttract() {
+  LOG(LOG_DEBUG, "gotoAttract");
   sendCommandToAll("GS_ATTRACT", []);
   gameState = GS_ATTRACT;
 }
@@ -533,7 +548,7 @@ function gotoAttract() {
 ////////////////
 // start a brand new game
 function newGame() {
-  console.log("New Game!");
+  LOG(LOG_DEBUG, "New Game!");
   simonsSequence = [];
   playerSequence = [];
   gameState = GS_COMPUTER;
@@ -554,9 +569,9 @@ function newGame() {
 // The first thing we do is find and connect all the arduinos connected as USB/serial ports 
 SerialPort.list(function (err, portList) {
  portList.forEach(function( portInfo) {
-    console.log( portInfo.comName);
-    console.log( portInfo.pnpId);
-    console.log( portInfo.manufacturer);
+    LOG(LOG_DEBUG, portInfo.comName);
+    LOG(LOG_DEBUG, portInfo.pnpId);
+    LOG(LOG_DEBUG, portInfo.manufacturer);
     var newPort = makePort(portInfo.comName);
     ports[portInfo.comName] = newPort;
     
@@ -570,7 +585,7 @@ SerialPort.list(function (err, portList) {
 function setupArduinos() {
     for ( i in ports ) {
         var p = ports[i];
-        console.log("setting up " + i + " : " + p.toString() );
+        LOG(LOG_DEBUG, "setting up " + i + " : " + p.toString() );
         p.port.write("NAME:" + '\n');
     }
 
@@ -600,7 +615,7 @@ var gameState = GS_INIT;
 // this will start the loop 5 seconds after we start up (to allow ports to be initialized), then
 // start a 50 ms loop
 setTimeout(function(){
-  console.log("Starting Loop")
+  LOG(LOG_DEBUG, "Starting Loop")
   setInterval (loop,500);
 }, 5000);
 
@@ -611,7 +626,7 @@ function loop () {
 
   switch( gameState) {
     case GS_INIT:
-        console.log("gs_init");
+        LOG(LOG_DEBUG, "gs_init");
         setupArduinos();
         gameState = GS_WAIT;
         break;
@@ -620,14 +635,14 @@ function loop () {
             bGotAll = true;
             var i = 0;
             while ( i <= LAST_BUTTON ) {
-                console.log("check " + i);
+                LOG(LOG_DEBUG, "check " + i);
                 if (simonPorts[i] == null) {
                     bGotAll = false;
-                    console.log("dont got all " + i.toString());
+                    LOG(LOG_DEBUG, "dont got all " + i.toString());
                 }
                 i++;
             }
-            console.log("GS_WAIT gotAll = " + bGotAll.toString());
+            LOG(LOG_DEBUG, "GS_WAIT gotAll = " + bGotAll.toString());
             if ( bGotAll ) {
               gotoAttract();
             }
@@ -637,11 +652,11 @@ function loop () {
             break;
 
     case GS_ATTRACT:
-      console.log("GS_ATTRACT waiting for red button");
+      LOG(LOG_INFO, "GS_ATTRACT waiting for red button");
       readButton(SIMON_RED);
       //readButton(SIMON_GREEN);
       if (buttonWeights[SIMON_RED] > 0) {
-        console.log ("Button Pushed :: Start Game");
+        LOG(LOG_DEBUG, "Button Pushed :: Start Game");
         sendCommand(SIMON_CENTER, "GS_COMPUTER", null);
         //simonPorts[SIMON_CENTER].port.write ('GS_COMPUTER' + '\n');
         newGame();
