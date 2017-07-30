@@ -3,7 +3,7 @@ var SerialPort = require('serialport');
 ////////////////
 
 // set to true to run self-test
-var autotest = true;
+var autotest = false;
 
 
 const LOG_ERROR = 0;
