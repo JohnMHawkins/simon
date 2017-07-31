@@ -23,19 +23,19 @@ enum LedState {
 
 
 //load cells
-int buttonCutOff = 500;
+int buttonCutOff = 1500;
 
-int b1_loadSample = 5;
-const int b1_totalLoadCells = 1;
+int b1_loadSample = 1;
+const int b1_totalLoadCells = 4;
 
 int b2_loadSample = 5;
 const int b2_totalLoadCells = 1;
 
-const byte b1_hx711_data_pin[] = {A0};
-const byte b1_hx711_clock_pin[] = {A2};
+const byte b1_hx711_data_pin[] = {A0, A1, A2, A3};
+const byte b1_hx711_clock_pin[] = {A5, A6, A7, A8};
 
-const byte b2_hx711_data_pin[] = {A1};
-const byte b2_hx711_clock_pin[] = {A3};
+const byte b2_hx711_data_pin[] = {A4};
+const byte b2_hx711_clock_pin[] = {A9};
 
 HX711 b1_loadCells[b1_totalLoadCells];
 HX711 b2_loadCells[b2_totalLoadCells];
@@ -47,7 +47,7 @@ HX711 b2_loadCells[b2_totalLoadCells];
 #define LED_TYPE    APA102
 #define COLOR_ORDER BGR
 #define NUM_LEDS    144
-#define BRIGHTNESS 75
+#define BRIGHTNESS 255
 
 CRGB leds[NUM_LEDS];
 
@@ -523,21 +523,42 @@ void tar(int button)
 int getWeight(int button)
 {
   int load = 0;
+  int loadTally = 0;
 
   if (button == 1)
   {
     for (int i = 0; i < b1_totalLoadCells; i++)
     {
-      load += b1_loadCells[i].get_value() / 10;
+      int tl = 0;
+      tl = b1_loadCells[i].get_value() / 10;
+      if(tl > 0)
+      {
+        load += tl;
+        loadTally++;
+      }
+      else
+      {
+        tl = 0;
+      }
+      
+      Serial.print("B" + String(i) + ": " + String(tl) + "   ");
     }
-
-    load = load / b1_totalLoadCells;
+    Serial.println(" ");
+    if(loadTally == 0)
+    {
+     load = 0; 
+    }
+    else
+    {
+    load = load / loadTally;
+    }
   }
   else if (button == 2)
   {
     for (int i = 0; i < b2_totalLoadCells; i++)
     {
       load += b2_loadCells[i].get_value() / 10;
+      
     }
 
     load = load / b2_totalLoadCells;

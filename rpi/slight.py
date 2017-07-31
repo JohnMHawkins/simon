@@ -4,148 +4,159 @@ import time
 
 #Simon LIght Controller
 
+class DMXFixture:
 
-#find the device
-dev = usb.core.find(idVendor=0x16c0)
-print dev
-dev.set_configuration()
-cfg = dev.get_active_configuration()
-intf = cfg[0,0]
-bmReqType = usb.util.CTRL_TYPE_VENDOR | usb.util.CTRL_RECIPIENT_DEVICE | usb.util.CTRL_OUT
+    # string defining the type (e.g. "7-chan PAR" )
+    fixtureType = ""
 
+    # what is the DMX Address (1-512)
+    dmxAddr = 1
 
-def sendCommand(fixtureId, startChan, cv):
-    print dev.ctrl_transfer(bmReqType, 2, wValue=len(cv), wIndex=fixtureId + startChan, data_or_wLength=cv)
+    # how many channels does this fixture take
+    numChan = 0
 
-
-def turnOff(fixture):
-    setMode(fixture, MODE_MANUAL, 0, 0)
-    cv = bytearray([0,0,0,0])
-    sendCommand(fixture,0,cv)
-    
-def setRGB(fixture,i, r, g, b):
-    cv = bytearray([i,r,g,b])
-    sendCommand(fixture, 0, cv)
-
-def strobe(fixture, i):
-    cv = bytearray([i])
-    sendCommand(fixture, 4,cv)
-
-MODE_MANUAL = 0
-MODE_SELECT = 10
-MODE_SHADE = 60
-MODE_PULSE = 110
-MODE_TRANS = 160
-MODE_SOUND = 210
-
-def setMode(fixture, mode, intensity, speed):
-    ch5 = mode + intensity
-    cv = bytearray([ch5, speed])
-    sendCommand(fixture, 5, cv)
-    
-
-    
-
-#turn light off until we're told otherwise
-
-fixtures = [0,7]
-settings = []
-
-for f in fixtures:
-    turnOff(f)
-    setRGB(f, 255,255,255,255)
-
-    #strobe off
-    iStrobe = 0
-    strobe(f, iStrobe)
-
-    setting = { 'd': 255, 'r' : 0, 'g' : 0, 'b': 0 }
-    settings.append(setting)
-    
+    # name : just a descriptive string, like "lefthand-spot"
+    name = ""
 
 
-fx = 0
+    def __init__(self, numChan, fixType, name=""):
+        self.numChan = numChan
+        self.fixtureType = fixType
+        self.name = name
+
+    def setDMXAddr(self, dmxAddr):
+        if dmxAddr >= 1 and dmxAddr <= 512:
+            self.dmxAddr = dmxAddr
+
+    # returns the highest address used by this fixture
+    def lastDMXAddr(self):
+        return self.dmxAddr + self.numChan
+
+    def makeCommand(self,cmd,data):
+        # this needs to be overridden by derrived classes
+        return {'chanId': 0, 'data' : None}
 
 
-bGo = True
-while bGo:
-    c = raw_input("command:")
-    if c == 'q':
-        for f in fixtures:
-            turnOff(f)
-        bGo = False
-    elif c == 'r':
-        s = settings[fx]
-        s['r'] = 255
-        s['g'] = 0
-        s['b'] = 0
-        setRGB(fixtures[fx], s['d'],s['r'],s['g'],s['b'])
-    elif c == 'g':
-        s = settings[fx]
-        s['r'] = 0
-        s['g'] = 255
-        s['b'] = 0
-        setRGB(fixtures[fx], s['d'],s['r'],s['g'],s['b'])
-    elif c == 'b':
-        s = settings[fx]
-        s['r'] = 0
-        s['g'] = 0
-        s['b'] = 255
-        setRGB(fixtures[fx], s['d'],s['r'],s['g'],s['b'])
-    elif c == 'c':
-        s = settings[fx]
-        s['r'] = 0
-        s['g'] = 255
-        s['b'] = 255
-        setRGB(fixtures[fx], s['d'],s['r'],s['g'],s['b'])
-    elif c == 'p':
-        s = settings[fx]
-        s['r'] = 255
-        s['g'] = 0
-        s['b'] = 255
-        setRGB(fixtures[fx], s['d'],s['r'],s['g'],s['b'])
-    elif c == 'y':
-        s = settings[fx]
-        s['r'] = 255
-        s['g'] = 255
-        s['b'] = 0
-        setRGB(fixtures[fx], s['d'],s['r'],s['g'],s['b'])
-    elif c == 'w':
-        s = settings[fx]
-        s['r'] = 255
-        s['g'] = 255
-        s['b'] = 255
-        setRGB(fixtures[fx], s['d'],s['r'],s['g'],s['b'])
-    if c == "d":
-        s = settings[fx]
-        s['d'] = s['d'] - 75
-        if s['d'] < 0:
-            s['d'] = 255
-        setRGB(fixtures[fx], s['d'],s['r'],s['g'],s['b'])
-    elif c == 's':
-        iStrobe = iStrobe + 75
-        if iStrobe > 255 :
-            iStrobe = 0
-        strobe(fixtures[fx], iStrobe)
-    elif c == "1":
-        setMode(fixtures[fx], MODE_MANUAL,0,0)
-    elif c == "2":
-        setMode(fixtures[fx], MODE_SELECT,25,127)
-    elif c == "3":
-        setMode(fixtures[fx], MODE_SHADE,25,127)
-    elif c == "4":
-        setMode(fixtures[fx], MODE_PULSE,25,127)
-    elif c == "5":
-        setMode(fixtures[fx], MODE_TRANS,25,127)
-    elif c == "6":
-        setMode(fixtures[fx], MODE_SOUND,25,127)
+class DMX_7_ChanPAR(DMXFixture):
 
-    elif c[0:1] == "f":
-        fx = int(c[1:]) - 1
-        print "set fixture to " + str(fixtures[fx])
+    def __init__(self,name=""):
+        DMXFixture.__init__(self, 7, "7-chan PAR")
+
+
+    def makeCommand(self, cmd, data):
+        ret = {'chanId':0, 'data':None}
+        if cmd == "irgb":
+            # sets intensity, red, green, blue, data is "i.r.g.b"
+            dbytes = data[0].split(".")
+            ret['chanId'] = 0
+            ret['data'] = bytearray(int(dbytes[0]),int(dbytes[1]),int(dbytes[2]),int(dbytes[3]))
+        elif cmd == "strobe":
+            # sets strobe level.  data is 0-255 strobe intensity
+            ret['chanId'] = 4
+            ret['data'] = bytearray(int(dbytes))
+        elif cmd == "off":
+            # set mode to manual and then turn everything off
+            ret['chanId'] = 0
+            ret['data'] = bytearray(0,0,0,0,0,0,0)
+        elif cmd == "mode":
+            # sets the mode, data is modetype.modelevel.trigger]
+            dbytes = data[0].split(".")
+            if dbytes[0] == "select":
+                mIdx = 10
+            elif dbytes[0] == "shade":
+                mIdx = 60
+            elif dbytes[0] == "pulse":
+                mIdx = 110
+            elif dbytes[0] == "hard":
+                mIdx = 160
+            elif dbytes[0] == "sound":
+                mIdx = 210
+            else:
+                # assume "manual"
+                mIdx = 0
+                dbytes[1] = "0"
+
+            ch5val = mIdx = int(dbytes[1])
+            ch6val = int(dbytes[2])    
+            ret['chanId'] = 5
+            ret['data'] = bytearray([ch5val, ch6val])
+            
+
+        return ret
+
+
+
+class DMXController:
+
+    # this is the device itself
+    dev = None
+    cfg = None
+    bmReqType = usb.util.CTRL_TYPE_VENDOR | usb.util.CTRL_RECIPIENT_DEVICE | usb.util.CTRL_OUT
+
+    # fixtures in this universe
+    # { DMXFixture}
+    fixtures = []
+
+
+    def __init__(self):
+        #find the device
+        self.dev = usb.core.find(idVendor=0x16c0)
+        print "Initializding DMXController"
+        print self.dev
+        print "---------------------------"
+        self.dev.set_configuration()
+        self.cfg = self.dev.get_active_configuration()
         
-    elif c == 'o':
-        turnOff(fixtures[fx])
 
-    time.sleep(0.5)
+    def addFixture(self, fixture):
+        self.fixtures.append(fixture)
+        # TBD - go through self.fixtures and make sure there is no overlap?
+
+
+    # returns the next open DMX address
+    def getNextAvailAddr(self):
+        nextId = 1
+        for f in self.fixtures:
+            if f.lastDMXAddr + 1 > nextId:
+                nextId = f.lastDMXAddr + 1
+        return nextid
+
     
+
+    #
+    # fixtureId is the index of the fixture (0,1,2 etc)
+    # chanId is the channel on the fixture
+    # data is the bytearray of data
+    #
+    def sendCommandX(self, fixtureId, chanId, data):
+        numBytes = len(data)
+        if fixtureId < len(self.fixtures):
+            fix = self.fixtures[fixtureId]
+            if (chanId + numBytes) <= fix['fixture'].numChan:
+                wIdx = fix['fixture'].dmxAddr + chanId
+                # send the command - we always use type = 2, multi channel, even if only sending one channel
+                self.dev.ctrl_transfer(self.bmReqType, 2, wValue=numBytes, wIndex=wIdx, data_or_wLength=data)
+            else:
+                print "ERROR: trying to send too many channels for the device"
+                print "Fixture: [" + str(fixtureId) + "] " + fix['name']
+                print "fixture.numChan=" + str(fix['numChan'])
+                print "chanId, bytes = " + str(chanId) + "," + str(numBytes)
+        else:
+            print "ERROR:  bad fixture id: " + str(fixtureId)
+
+
+    # asks the DMXFixture to format a command and then sends it to the fixture
+    # /{fixid}/{cmd}/{data}  e.g /1/irgb/255.255.255.0  tells a PAR to set full brightness yellow
+    def sendCommand(self, cmdstring):
+        cmdparts = cmdstring.split("/")
+        if len(cmdparts) > 2:
+            idx = int(cmdparts[1]) - 1
+            if idx < len(self.fixtures):
+                fix = self.fixtures[idx]
+                cmd = fix.makeCommand(cmdparts[2], cmdparts[3:])
+                if cmd.data != None:
+                    wIdx = fix.dmxAddr + cmd.chanId
+                    numBytes = len(cmd.data)
+                    self.dev.ctrl_transfer(self.bmReqType, 2, wValue=numBytes, wIndex=wIdx, data_or_wLength=cmd.data)
+
+

@@ -4,8 +4,9 @@ var http = require("http");
 ////////////////
 
 // set to true to run self-test
-var autotest = false;
+var autotest = true;
 var testlength = 14;
+var useDMX = false;
 
 var dmxControllers = [
     "169.254.60.123"
@@ -64,12 +65,15 @@ const DMX_RGB = 1
 // send to dmxControllers
 function sendDMX(buttonId, cmd, data) {
 
+    if ( !useDMX ) {
+        return;
+    }
+
     if ( buttonId < dmxControllers.length ) {
         var options = {
           host: dmxControllers[buttonId],
           path: '/dmx/cmd/'
         };
-        //url = dmxControllers[buttonId] + '/dmx/cmd/';
         
         switch ( cmd) {
             case DMX_OFF:
@@ -87,7 +91,7 @@ function sendDMX(buttonId, cmd, data) {
                 break;
         }
 
-       // http.get(options, function(res){});
+       http.get(options, function(res){});
 
     }
 }
@@ -130,12 +134,21 @@ function sendCommand(buttonId, cmd, data) {
 
 }
 
-function sendCommandToAll(cmd, data) {
-  sendCommand(SIMON_CENTER, cmd, data);
-  sendCommand(SIMON_RED, cmd, data);
-  sendCommand(SIMON_GREEN, cmd, data);
-  sendCommand(SIMON_BLUE, cmd, data);
-  sendCommand(SIMON_YELLOW, cmd, data);
+function sendCommandToAll(cmd, data, includeCenter) {
+    idx = SIMON_CENTER;
+    if (!includeCenter) {
+        idx++;
+    }
+    sendTimer = setInterval(function() {
+        if ( idx <= LAST_BUTTON) {
+            sendCommand(idx, cmd, data);
+            idx = idx + 1;
+        }
+        else {
+            clearInterval(sendTimer);
+        }
+    },100);
+  
 }
 
 ////////////////////////////////////
@@ -246,7 +259,6 @@ function receiveSerialData(comName, cmd) {
 
   cmdparts = cmd.toString().split(":");
 
-  //console.log("command " + cmdparts[0] );  
    
   if ( cmdparts[0].indexOf("[CENTER]") > -1 ) {
     ardId = SIMON_CENTER;
@@ -292,21 +304,8 @@ function readAllButtons(resetWeights) {
   }
 
   LOG(LOG_INFO, "Read Buttons")
-  sendCommand(SIMON_RED, "READ_BUTTONS", null);
-  setTimeout(function() {
-      sendCommand(SIMON_GREEN, "READ_BUTTONS", null);
-      setTimeout(function() {
-          sendCommand(SIMON_BLUE, "READ_BUTTONS", null);
-            setTimeout(function() {
-                  sendCommand(SIMON_YELLOW, "READ_BUTTONS", null);
-                
-            },250);
-      }, 250);
-
-  }, 250);
-  //sendCommand(SIMON_GREEN, "READ_BUTTONS", null);
-  //sendCommand(SIMON_BLUE, "READ_BUTTONS", null);
-  //sendCommand(SIMON_YELLOW, "READ_BUTTONS", null);
+  sendCommandToAll("READ_BUTTONS, null", false);
+  
 
 }
 
@@ -391,7 +390,7 @@ function showColor(coloridx, howLong) {
 
   // send to raspberryPi
   // TBD
-  //sendDMX(SIMON_CENTER, DMX_RGB, {r: rgbs[coloridx]['r'],g: rgbs[coloridx]['g'],b: rgbs[coloridx]['b'],duration:howLong - 50 });
+  sendDMX(SIMON_CENTER, DMX_RGB, {r: rgbs[coloridx]['r'],g: rgbs[coloridx]['g'],b: rgbs[coloridx]['b'],duration:howLong - 50 });
 
   // trigger arduino
   sendCommand(SIMON_CENTER, "FLASHCOLOR", [ rgbs[coloridx]['rgb'], howLong, 1]);
@@ -414,23 +413,27 @@ var simonms = 0;
 ////////////////
 // shows the next color and sets a timer
 function showNextSimonColor() {
-  if ( simonSequenceIdx < simonsSequence.length) {
+  if ( simonSequenceIdx < simonsSequence.length - 1) {
     showColor(simonsSequence[simonSequenceIdx], simonms);
     simonSequenceIdx++;
+
   }
   else {
-    // we're done, start the player's timer or go back to attract mode
+    // we're on the newest color.  Show it slow, then start the player's timer or go back to attract mode
     if ( simonIntervalTimer ) {
       clearInterval(simonIntervalTimer);
     }
-    if ( gameState == GS_REPLAY) {
-      // go back to attract mode
-      gotoAttract();
-      
-    }
-    else {
-      startPlayersTimer();
-    }
+    showColor(simonsSequence[simonSequenceIdx], 500);
+    setTimeout(function() {
+        if ( gameState == GS_REPLAY) {
+        // go back to attract mode
+        gotoAttract();
+        
+        }
+        else {
+        startPlayersTimer();
+        }
+    }, 500);
   }
 }
 
@@ -509,12 +512,37 @@ var simonsSequence = []
 var playerSequence = []
 
 
+// shifts the color by one
+function shiftColor(color) {
+    color++
+    if ( color >= LAST_BUTTON ) {
+        color = FIRST_BUTTON;
+    }
+    LOG(LOG_DEBUG, "--- shifted color to " + color.toString());
+    return color;
+}
+
 ////////////////
 // pick a new color to add, then show the sequence
 function addNewColor() {
   LOG(LOG_DEBUG, "Add new color, sequence now is:");
   var coloridx = Math.floor(Math.random() * (LAST_BUTTON + 1 - FIRST_BUTTON) + FIRST_BUTTON);
-  coloridx = 1;
+  // no more than two of a color in a row
+  if ( simonsSequence.length > 1) {
+    if ( coloridx == simonsSequence[simonsSequence.length - 1] && coloridx == simonsSequence[simonsSequence.length - 2]) {
+
+        coloridx = shiftColor(coloridx);
+
+    }
+      
+  } 
+  else {
+    // don't let it start with two of the same color
+    if ( coloridx == simonsSequence[simonsSequence.length - 1]) {
+        coloridx = shiftColor(coloridx);
+    }
+
+  }
   simonsSequence.push(coloridx);
   LOG(LOG_DEBUG, simonsSequence)
   showSimonsSequence(false);
@@ -586,7 +614,7 @@ function gameOver() {
   // buzz 
   // send GS_GAME_OVER to all arduinos
   LOG(LOG_INFO, "calling gameOver, gamestate = " + gameState.toString())
-  sendCommandToAll("FLASHCOLOR", [rgbs[SIMON_RED]['rgb'],500,3] );
+  sendCommandToAll("FLASHCOLOR", [rgbs[SIMON_RED]['rgb'],500,3], true );
   setGameState(GS_GAME_OVER, "gameOver");
 
   setTimeout(function(){
@@ -716,7 +744,7 @@ function loop () {
         LOG(LOG_INFO, "gs_init");
         setupArduinos();
         setGameState(GS_WAIT);
-        //sendDMX(SIMON_CENTER, DMX_OFF, null);
+        sendDMX(SIMON_CENTER, DMX_OFF, null);
         break;
 
         case GS_WAIT:
@@ -741,8 +769,8 @@ function loop () {
 
     case GS_ATTRACT:
       LOG(LOG_INFO, "GS_ATTRACT waiting for red button");
-      readButton(SIMON_YELLOW);
-      if (buttonWeights[SIMON_YELLOW] > 0) {
+      readButton(SIMON_RED);
+      if (buttonWeights[SIMON_RED] > 0) {
         LOG(LOG_DEBUG, "Button Pushed :: Start Game");
         sendCommand(SIMON_CENTER, "GS_COMPUTER", null);
         newGame();
