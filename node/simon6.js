@@ -6,7 +6,8 @@ var http = require("http");
 // set to true to run self-test
 var autotest = true;
 var testlength = 14;
-var useDMX = true;
+var useArduinos = false;
+var useDMX = false;
 
 var dmxControllers = [
     "192.168.0.101"
@@ -18,6 +19,8 @@ const LOG_INFO  = 2;
 
 var loglevel = LOG_DEBUG;
 
+
+
 // the ports the arduinos are connected to
 const SIMON_CENTER = 0;
 
@@ -28,8 +31,135 @@ const SIMON_BLUE   = 3;
 const SIMON_YELLOW = 4;
 const LAST_BUTTON  = 4; // set this to the index of the last arduino we consider a button
 
+// command protocol for node <-> arduino
+// HDLC style protocol
+// 0x7E is the frame control (last byte is 0x7e). 
+// 16 bytes:  
+// byte 0:  length in bytes of message
+// byte 1: address to/from, bitmask of addresses, 0x01 is off
+// byte 2:  command, 1 byte, 0x01 is on
+// bytes 3-(n-1):  data (0x7E not allowed)
+// byte n:  0x7E, terminator
+// 
+// so an example of a READ_BUTTONS command to the green button would be:
+// 0x03 - 0x08 - 0x03 - 0x7e
+// and the response might be:
+// 0x05 - 0x08 - 0x03 - 0x13 - 0x88 - 0x7e   (green button replying to read buttons with value of 5000)
+//
+// command data formats:
+//
+// READ_BUTTONS:
+//  to button:  no data
+//  from button: two bytes representing a hex number from 0x0000 to 0xffff (0x--7e and 0x7e-- not allowed, will be rounded to 0x7f)
+//
+// FLASHCOLOR:
+//  to button:  6 bytes data:  1 byte each r, g, b, then two bytes duration (0x0000 to 0xffff milliseconds), and one byte repeat.
+//
+// GS_TIMER:
+//  to button:  5 bytes data:  1 byte each r, g, b, then two bytes duration (0x0000 to 0xffff milliseconds)
+//
+// GS_ATTRACT:
+//  to button: no data
+//
+// GS_COMPUTER:
+//  to button: no data
+// 
+
+// addresses
+const ADDR_CENTER   = 2;
+const ADDR_RED      = 4;
+const ADDR_GREEN    = 8;
+const ADDR_BLUE     = 16;
+const ADDR_YELLOW   = 32;
+
+// commands
+const CMD_READ_BUTTONS  = 2;
+const CMD_FLASHCOLOR    = 3;
+const CMD_GS_TIMER      = 4;
+const CMD_GS_ATTRACT    = 5;
+const CMD_GS_COMPUTER   = 6;
+
+
 var ports = {};
 var simonPorts = {};
+
+
+// creates the command buffer and fills out header
+function getBuffer(dataLength, dest, cmd) {
+    cmdBuff = Buffer.allocUnsafe(dataLength + 4);
+    var iOff = 0;
+    iOff = cmdBuff.writeInt8(dataLength + 4, iOff); // length of entire transmissiont (len - addr - cmd - data - 0x7e)
+    iOff = cmdBuff.writeInt8(dest, iOff);           // who for
+    iOff = cmdBuff.writeInt8(cmd, iOff);            // command
+    return cmdBuff;
+}
+
+// ensures there are no 0x7e entries
+function sanitizeBuffer(buff, iLen) {
+
+    for ( var i = 0; i < iLen; i++ ) {
+        if ( buff[i] == 0x7e) {
+            buff[i] = 0x7f;
+        }
+    }
+}
+
+function makeCommand ( dest, command, data ) {
+
+    console.log("makeCommand : " + dest + " : " + command);
+    var msg = []
+    var datalength = 2;
+    var cmdData = [];
+    var cmdBuff;
+    var iOff = 3; // data always starts at the 3, 0-2 are header info
+
+    switch ( command ) {
+        case CMD_READ_BUTTONS:
+            datalength = 0;
+            cmdBuff = getBuffer(datalength, dest, command);
+            break;
+        case CMD_FLASHCOLOR:
+            // cmd data = r,g,b,2bytes duration, repeat
+            datalength = 7;
+            cmdBuff = getBuffer(datalength, dest, command);
+            iOff = cmdBuff.writeUInt8(data[0].r, iOff);
+            iOff = cmdBuff.writeUInt8(data[0].g, iOff);
+            iOff = cmdBuff.writeUInt8(data[0].b, iOff);
+            iOff = cmdBuff.writeInt16BE(data[1], iOff);
+            iOff = cmdBuff.writeInt8(data[2], iOff);
+            break;
+
+        case CMD_GS_TIMER:
+            // cmd data = r,g,b,two bytes duration
+            datalength = 6;
+            cmdBuff = getBuffer(datalength, dest, command);
+            iOff = cmdBuff.writeUInt8(data[0].r, iOff);
+            iOff = cmdBuff.writeUInt8(data[0].g, iOff);
+            iOff = cmdBuff.writeUInt8(data[0].b, iOff);
+            iOff = cmdBuff.writeInt16BE(data[1], iOff);
+            break;
+
+        case CMD_GS_ATTRACT:
+            datalength = 0;
+            cmdBuff = getBuffer(datalength, dest, command);
+            break;
+
+        case CMD_GS_COMPUTER:
+            datalength = 0;
+            cmdBuff = getBuffer(datalength, dest, command);
+            break;
+    }
+
+    if ( cmdBuff ) {
+        sanitizeBuffer(cmdBuff, iOff);
+        iOff = cmdBuff.writeInt8(126, iOff); // frame control
+        console.log("cmdbuff = " + cmdBuff.toString('hex', 0, iOff));    
+        return  cmdBuff.toString('hex', 0, iOff);
+    }
+
+    return "";
+
+}
 
 /*
 jumpers:
@@ -104,38 +234,38 @@ function sendDMX(buttonId, cmd, data) {
 
 // data is an array [] where each element will be sent a:b:c
 function sendCommand(buttonId, cmd, data) {
+  cmdAdd = 0;
+
   cmdString = "";
   switch ( buttonId) {
     case SIMON_CENTER:
       cmdString = "CENTER:";
+      cmdAdd = ADDR_CENTER;
       break;
     case SIMON_RED:
       cmdString = "RED:";
+      cmdAdd = ADDR_RED;
       break;
     case SIMON_GREEN:
       cmdString = "GREEN:";
+      cmdAdd = ADDR_GREEN;
       break;
     case SIMON_BLUE:
       cmdString = "BLUE:";
+      cmdAdd = ADDR_BLUE;
       break;
     case SIMON_YELLOW:
       cmdString = "YELLOW:";
+      cmdAdd = ADDR_YELLOW;
       break;
   }
 
-  cmdString += cmd
-  if ( data ) {
-    i = 0;
-    while ( i < data.length) {
-      cmdString += ":" + data[i].toString();
-      i++;
-    }
+  var buff = makeCommand ( cmdAdd, cmd, data ) ;
 
-  }
-
-  LOG(LOG_DEBUG,"SENDING " + buttonId.toString() + "==" + cmdString);
+  
+  LOG(LOG_DEBUG,"SENDING " + buttonId.toString() + "==" + buff.toString("hex"));
   if ( simonPorts[buttonId] != null && simonPorts[buttonId].port != null ) {
-    simonPorts[buttonId].port.write (cmdString + '\n');
+    simonPorts[buttonId].port.write (buff, "hex");
   }
 
 }
@@ -295,7 +425,7 @@ function receiveSerialData(comName, cmd) {
 // reads one button
 function readButton(btnId) {
   LOG(LOG_INFO, "readbutton of " + btnId.toString());
-  sendCommand(btnId, "READ_BUTTONS", null);
+  sendCommand(btnId, CMD_READ_BUTTONS, null);
 }
 
 ////////////////
@@ -310,7 +440,7 @@ function readAllButtons(resetWeights) {
   }
 
   LOG(LOG_INFO, "Read Buttons")
-  sendCommandToAll("READ_BUTTONS, null", false);
+  sendCommandToAll(CMD_READ_BUTTONS, null, false);
   
 
 }
@@ -399,11 +529,11 @@ function showColor(coloridx, howLong) {
   sendDMX(SIMON_CENTER, DMX_RGB, {r: rgbs[coloridx]['r'],g: rgbs[coloridx]['g'],b: rgbs[coloridx]['b'],duration:howLong - 50 });
 
   // trigger arduino
-  sendCommand(SIMON_CENTER, "FLASHCOLOR", [ rgbs[coloridx]['rgb'], howLong, 1]);
+  sendCommand(SIMON_CENTER, CMD_FLASHCOLOR, [ rgbs[coloridx], howLong, 1]);
   
   // temporary check in case we don't have all four colors hooked up 
   if (coloridx < simonPorts.length) {
-    sendCommand(coloridx, "FLASHCOLOR", [ rgbs[coloridx]['rgb'], howLong, 1]);
+    sendCommand(coloridx, CMD_FLASHCOLOR, [ rgbs[coloridx], howLong, 1]);
   }
 
 }
@@ -489,7 +619,7 @@ function startPlayersTimer() {
   }
 
   // send message to center arduino
-  sendCommand(SIMON_CENTER, "GS_TIMER", ["255-255-255",  timerms]);
+  sendCommand(SIMON_CENTER, CMD_GS_TIMER, ["255-255-255",  timerms]);
   
   // when time is up, read the buttons
   setTimeout(function(){
@@ -620,7 +750,7 @@ function gameOver() {
   // buzz 
   // send GS_GAME_OVER to all arduinos
   LOG(LOG_INFO, "calling gameOver, gamestate = " + gameState.toString())
-  sendCommandToAll("FLASHCOLOR", [rgbs[SIMON_RED]['rgb'],500,3], true );
+  sendCommandToAll(CMD_FLASHCOLOR, [rgbs[SIMON_RED],500,3], true );
   setGameState(GS_GAME_OVER, "gameOver");
 
   setTimeout(function(){
@@ -633,7 +763,7 @@ function gameOver() {
 
 function gotoAttract() {
   setGameState(GS_ATTRACT, "gotoAttract");
-  sendCommandToAll("GS_ATTRACT", []);
+  sendCommandToAll(CMD_GS_ATTRACT, []);
 }
 
 ////////////////
@@ -778,7 +908,7 @@ function loop () {
       readButton(SIMON_RED);
       if (buttonWeights[SIMON_RED] > 0) {
         LOG(LOG_DEBUG, "Button Pushed :: Start Game");
-        sendCommand(SIMON_CENTER, "GS_COMPUTER", null);
+        sendCommand(SIMON_CENTER, CMD_GS_COMPUTER, null);
         newGame();
       }
       ////////////
