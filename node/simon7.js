@@ -4,7 +4,7 @@ var http = require("http");
 ////////////////
 
 // set to true to run self-test
-var autotest = true;
+var autotest = false;
 var testlength = 14;
 var useDMX = false;
 
@@ -426,9 +426,9 @@ function showColor(coloridx, howLong) {
   sendCommand(SIMON_CENTER, "FLASHCOLOR", [ rgbs[coloridx]['rgb'], howLong, 1]);
   
   // temporary check in case we don't have all four colors hooked up 
-  if (coloridx < simonPorts.length) {
+  //if (coloridx < simonPorts.length) {
     sendCommand(coloridx, "FLASHCOLOR", [ rgbs[coloridx]['rgb'], howLong, 1]);
-  }
+  //}
 
 }
 
@@ -507,9 +507,12 @@ function startPlayersTimer() {
   readAllButtons(true);
   l = simonsSequence.lenth;
 
-  timerms = 3000; // 3 seconds unless...
+  timerms = 4000; // 4 seconds unless...
   if ( l > 15) {
-    timerms = 1500; // gotta be quick!
+    timerms = 2000; // gotta be quick!
+  }
+  else if ( l > 6 ) {
+    timerms = 3000;
   }
 
   // send message to center arduino
@@ -658,7 +661,7 @@ function gameOver() {
 function gotoAttract() {
   LOG(LOG_DEBUG, "gotoAttract");
   setGameState(GS_ATTRACT, "gotoAttract");
-  //sendCommandToAll("GS_ATTRACT", []);
+  sendCommandToAll("GS_ATTRACT", [], true);
 }
 
 ////////////////
