@@ -351,11 +351,6 @@ int getWeight(int button)
 {
   return button * 1000;
 
-  // test consume some cpu
-  for ( int i = 0; i < 10000; i++) {
-    float j = sqrt(i);
-  }
-
 }
 
 

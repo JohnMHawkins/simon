@@ -120,7 +120,7 @@ function makeCommand ( dest, command, data ) {
             break;
         case CMD_FLASHCOLOR:
             // cmd data = r,g,b,2bytes duration, repeat
-            datalength = 7;
+            datalength = 6;
             cmdBuff = getBuffer(datalength, dest, command);
             iOff = cmdBuff.writeUInt8(data[0].r, iOff);
             iOff = cmdBuff.writeUInt8(data[0].g, iOff);
@@ -131,7 +131,7 @@ function makeCommand ( dest, command, data ) {
 
         case CMD_GS_TIMER:
             // cmd data = r,g,b,two bytes duration
-            datalength = 6;
+            datalength = 5;
             cmdBuff = getBuffer(datalength, dest, command);
             iOff = cmdBuff.writeUInt8(data[0].r, iOff);
             iOff = cmdBuff.writeUInt8(data[0].g, iOff);
@@ -532,9 +532,9 @@ function showColor(coloridx, howLong) {
   sendCommand(SIMON_CENTER, CMD_FLASHCOLOR, [ rgbs[coloridx], howLong, 1]);
   
   // temporary check in case we don't have all four colors hooked up 
-  if (coloridx < simonPorts.length) {
+  //if (coloridx < simonPorts.length) {
     sendCommand(coloridx, CMD_FLASHCOLOR, [ rgbs[coloridx], howLong, 1]);
-  }
+  //}
 
 }
 
@@ -610,7 +610,7 @@ function showSimonsSequence(gameOver) {
 function startPlayersTimer() {
   setGameState(GS_TIMER);
   LOG(LOG_DEBUG, "Starting player's timer");
-  readAllButtons(true);
+  //readAllButtons(true);
   l = simonsSequence.lenth;
 
   timerms = 3000; // 3 seconds unless...

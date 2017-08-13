@@ -6,7 +6,7 @@ var http = require("http");
 // set to true to run self-test
 var autotest = true;
 var testlength = 14;
-var useDMX = true;
+var useDMX = false;
 
 var dmxControllers = [
     "192.168.0.101"
@@ -310,7 +310,7 @@ function readAllButtons(resetWeights) {
   }
 
   LOG(LOG_INFO, "Read Buttons")
-  sendCommandToAll("READ_BUTTONS, null", false);
+  sendCommandToAll("READ_BUTTONS", null, false);
   
 
 }
@@ -758,7 +758,7 @@ function loop () {
             var i = 0;
             while ( i <= LAST_BUTTON ) {
                 LOG(LOG_DEBUG, "check " + i);
-                if (simonPorts[i] == null && autotest != true) {
+                if (simonPorts[i] == null ) { //} && autotest != true) {
                     bGotAll = false;
                     LOG(LOG_DEBUG, "dont got all " + i.toString());
                 }
