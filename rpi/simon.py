@@ -254,7 +254,9 @@ def checkArduions():
         return True
     else:
         #TODO
-        return False
+        buttons = i2cbus.read_i2c_block_data(ardAddr, 1)
+        return buttons != None and len(buttons) > 5
+
 
 def newGame():
     global curSequence
@@ -413,6 +415,7 @@ def sendCommandToAll(cmd, data, includeCenter):
 
 
 def readButtons():
+    global buttonPushed
     # TODO
     '''
     # read from i2c bus
@@ -420,8 +423,17 @@ def readButtons():
     buttons[SIMON_RED] = weight of red button, etc
 
     '''
+    if bTestMode == False:
+        # read from i2c bus
+        buttons = i2cbus.read_i2c_block_data(ardAddr, 1)
+        maxWeight = 0
+        buttonPushed = SIMON_CENTER
+        for i in range(SIMON_RED, SIMON_LAST+1):
+            if buttons[i] > maxWeight:
+                maxWeight = buttons[i]
+                buttonPushed = i
+    
     return buttonPushed
-    pass
 
 
 
@@ -443,6 +455,7 @@ def loop():
     global gameState
     global bWaitForState
     global bGameOver
+    global PowerLight
     #LOG("Loop: " + str(gameState))
 
     if bWaitForState:
@@ -458,6 +471,7 @@ def loop():
         while bArduinosReady == False:
             bArduinosReady = checkArduions()
 
+        PowerLight.on()
         gotoState(STATE_ATTRACT)   
 
     elif gameState == STATE_ATTRACT:
