@@ -544,7 +544,13 @@ def loop():
 
 
 def main(argv):
-    print ("hello")
+    global bTestMode
+    if len(sys.argv) > 1:
+        if sys.argv[1] == "test":
+            bTestMode = True
+            print("Test mode - will simulate player hitting buttons")
+        else:
+            bTestMode = False
 
     bGo = True
     while bGo:
