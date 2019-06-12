@@ -6,7 +6,7 @@ import threading
 import random
 import time
 
-bTestMode = False
+bTestMode = True
 
 SIMON_CENTER = 0
 SIMON_NONE   = 0
@@ -93,7 +93,7 @@ class LED():
     def off(self):
         #print("--- turn off " + str(self.pin))
         pass
-
+'''
 def pollInput():
     global buttonPushed
     bGet = True
@@ -116,7 +116,7 @@ def pollInput():
 def useTestInput():
     t = threading.Thread(None, pollInput, name="testub", daemon=True)
     t.start()
-'''
+
 ##
 ##############################################
 
@@ -168,46 +168,46 @@ def setupLights():
 def allLightsOff():
     for i in range(SIMON_RED, SIMON_LAST + 1):
         #print("light off " + str(i))
-        ButtonLight[i].off()
-        SpotLights[i].off()
+        ButtonLight[i].on()
+        SpotLights[i].on()
         for j in range(0, 3):
-            CenterLights[i][j].off()
+            CenterLights[i][j].on()
     for j in range(0, 3):
         #print("center off " + str(j))
-        CenterLights[SIMON_WHITE][j].off()
+        CenterLights[SIMON_WHITE][j].on()
 
     print("done all lights off")
 
 def setPowerLight(bOn):
     if bOn:
-        PowerLight.on()
-    else:
         PowerLight.off()
+    else:
+        PowerLight.on()
 
 
 def colorOff(color):
-    #LOG("colorOff : " + str(color))
-    ButtonLight[color].off()
-    SpotLights[color].off()
-    CenterLights[color][0].off()
-    CenterLights[color][1].off()
-    CenterLights[color][2].off()
-
-def colorOn(color):
-    #LOG("colorOn : " + str(color))
+    LOG("colorOff : " + str(color))
     ButtonLight[color].on()
     SpotLights[color].on()
     CenterLights[color][0].on()
     CenterLights[color][1].on()
     CenterLights[color][2].on()
 
+def colorOn(color):
+    LOG("colorOn : " + str(color))
+    ButtonLight[color].off()
+    SpotLights[color].off()
+    CenterLights[color][0].off()
+    CenterLights[color][1].off()
+    CenterLights[color][2].off()
+
 def centerWhiteOff(idx):
     #LOG("centerWhiteOff : " + str(idx))
-    CenterLights[SIMON_CENTER][idx].off()
+    CenterLights[SIMON_CENTER][idx].on()
 
 def centerWhiteOn(idx):
     #LOG("centerWhiteOn : " + str(idx))
-    CenterLights[SIMON_CENTER][idx].on()
+    CenterLights[SIMON_CENTER][idx].off()
 
 
 def flashColor(color, dur, bSound):
@@ -247,8 +247,8 @@ def setupArduinos():
     # TODO
     LOG("setupArduionos")
     setupLights()
-    #if bTestMode:
-    #    useTestInput()
+    if bTestMode:
+        useTestInput()
 
 
 
@@ -351,7 +351,7 @@ def makePlayersChoice():
     if bTestMode:
         # set button pushed to last color
         if curStep < len(curSequence):
-            if len(curSequence) > 5:
+            if len(curSequence) > 15:
                 buttonPushed = -1   # end the game
             else:
                 buttonPushed = curSequence[curStep]
@@ -430,8 +430,8 @@ def readButtons():
     buttons[SIMON_RED] = weight of red button, etc
 
     '''
-    buttonPushed = -1
     if bTestMode == False:
+        buttonPushed = -1
         # read from i2c bus
         try:
             buttons = i2cbus.read_i2c_block_data(ardAddr, 1)
