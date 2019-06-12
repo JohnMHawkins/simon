@@ -1,11 +1,12 @@
 import sys
-#import smbus
-#from gpiozero import LED
+import smbus
+from gpiozero import LED
 from threading import Timer
 import threading
 import random
+import time
 
-bTestMode = True
+bTestMode = False
 
 SIMON_CENTER = 0
 SIMON_NONE   = 0
@@ -47,11 +48,15 @@ curStep = 0
 bGameOver = False
 buttonPushed = -1
 
-#i2cbus = smbus.SMBus(1)
-ardaAddr = 0x03
+i2cbus = smbus.SMBus(1)
+ardAddr = 0x03
 
 
 '''
+4, 24, 17, 25, 27, 8, 22, 7, 10, 12, 9, 16, 11, 20, 5, 21
+
+
+
 Pins for light relays:
 7      - GPIO 4      - power on:  
 8, 10  - GPIO 14, 15 - Red:  button, spot
@@ -63,7 +68,7 @@ Center:  3x wrgby = 15
 19, 21, 22 - GPIO 10, 9, 25  - w0, 1, 2 
 23, 24, 26 - GPIO 11, 8, 7   - r0, 1, 2  
 29, 31, 32 - GPIO 5, 6, 12   - g0, 1, 2
-33, 35, 36 - GPIO 13, 19, 36 - b0, 1, 2
+33, 35, 36 - GPIO 13, 19, 16 - b0, 1, 2
 37, 38, 40 - GPIO 26, 20, 21 - y0, 1, 2
 
 '''
@@ -75,14 +80,14 @@ CenterLights = [[None, None, None], [None, None, None], [None, None, None], [Non
 
 ############################################
 #test code for not on Pi
-
+'''
 class LED():
 
     def __init__(self, gpio):
         self.pin =  gpio
 
     def on(self):
-        #print("+++ turn on " + str(self.pin))
+        #           print("+++ turn on " + str(self.pin))
         pass
 
     def off(self):
@@ -111,7 +116,7 @@ def pollInput():
 def useTestInput():
     t = threading.Thread(None, pollInput, name="testub", daemon=True)
     t.start()
-
+'''
 ##
 ##############################################
 
@@ -149,7 +154,7 @@ def setupLights():
 
     CenterLights[SIMON_BLUE][0] = LED(13)
     CenterLights[SIMON_BLUE][1] = LED(19)
-    CenterLights[SIMON_BLUE][2] = LED(36)
+    CenterLights[SIMON_BLUE][2] = LED(16)
 
     CenterLights[SIMON_YELLOW][0] = LED(26)
     CenterLights[SIMON_YELLOW][1] = LED(20)
@@ -242,8 +247,8 @@ def setupArduinos():
     # TODO
     LOG("setupArduionos")
     setupLights()
-    if bTestMode:
-        useTestInput()
+    #if bTestMode:
+    #    useTestInput()
 
 
 
@@ -254,9 +259,11 @@ def checkArduions():
         return True
     else:
         #TODO
-        buttons = i2cbus.read_i2c_block_data(ardAddr, 1)
-        return buttons != None and len(buttons) > 5
-
+        try:
+            buttons = i2cbus.read_i2c_block_data(ardAddr, 1)
+            return buttons != None and len(buttons) > 5
+        except:
+            return False
 
 def newGame():
     global curSequence
@@ -423,16 +430,20 @@ def readButtons():
     buttons[SIMON_RED] = weight of red button, etc
 
     '''
+    buttonPushed = -1
     if bTestMode == False:
         # read from i2c bus
-        buttons = i2cbus.read_i2c_block_data(ardAddr, 1)
-        maxWeight = 0
-        buttonPushed = SIMON_CENTER
-        for i in range(SIMON_RED, SIMON_LAST+1):
-            if buttons[i] > maxWeight:
-                maxWeight = buttons[i]
-                buttonPushed = i
-    
+        try:
+            buttons = i2cbus.read_i2c_block_data(ardAddr, 1)
+            #LOG(buttons)
+            maxWeight = 0
+            for i in range(SIMON_CENTER, SIMON_LAST+1):
+                if buttons[i] > maxWeight:
+                    maxWeight = buttons[i]
+                    buttonPushed = i
+        except:
+            LOG("error reading i2c")
+            pass    
     return buttonPushed
 
 
@@ -481,6 +492,8 @@ def loop():
             sendCommand(SIMON_CENTER, CMD_COMPUTER, {})
             newGame()
             bWaitForState = True
+        #else:
+        #    time.sleep(0.25)
 
     elif gameState == STATE_BEGIN:
         pass
