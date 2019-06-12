@@ -22,8 +22,8 @@ def sendCmd(cmd):
 
 def readButton(btn):
     btns = bus.read_i2c_block_data(ardAdr, 1)
-    print(btns[btn])
-
+    #print(btns[btn])
+    print(btns)
 
 
 bus = smbus.SMBus(1)
