@@ -1,10 +1,17 @@
 import sys
-import smbus
-from gpiozero import LED
+# PI
+#import smbus
+#from gpiozero import LED
+import pygame.mixer
 from threading import Timer
 import threading
 import random
 import time
+
+'''
+sudo apt-get install python-smbus python3-smbus python-dev python3-dev i2c-tools
+sudo apt install python3-gpiozero
+'''
 
 bTestMode = True
 
@@ -34,8 +41,10 @@ STATE_TEST     = 12 # testing all lights and audio
 STATE_CHECK_BUTTONS = 13 # testing button input, will light whatever button the player is pushing
 
 # commands
-CMD_ATTRACT = 1
-CMD_COMPUTER = 2
+CMD_TEST = 1
+CMD_ZERO = 2
+CMD_ATTRACT = 3
+CMD_COMPUTER = 4
 
 #dmx commands
 DMX_OFF = 0
@@ -47,9 +56,15 @@ curSequence = []
 curStep = 0
 bGameOver = False
 buttonPushed = -1
+attractStep = 0
+attractThread = None
 
-i2cbus = smbus.SMBus(1)
-ardAddr = 0x03
+sounds = [[None, None, None],[None, None, None],[None, None, None],[None, None, None],[None, None, None]]
+audioch1 = None
+
+# PI
+#i2cbus = smbus.SMBus(1)
+#ardAddr = 0x03
 
 
 '''
@@ -80,7 +95,8 @@ CenterLights = [[None, None, None], [None, None, None], [None, None, None], [Non
 
 ############################################
 #test code for not on Pi
-'''
+# PI
+#'''
 class LED():
 
     def __init__(self, gpio):
@@ -93,7 +109,7 @@ class LED():
     def off(self):
         #print("--- turn off " + str(self.pin))
         pass
-'''
+#'''
 def pollInput():
     global buttonPushed
     bGet = True
@@ -160,6 +176,34 @@ def setupLights():
     CenterLights[SIMON_YELLOW][1] = LED(20)
     CenterLights[SIMON_YELLOW][2] = LED(21)
 
+def setupSounds():
+    global sounds
+    global audioch1
+
+    pygame.mixer.init()
+    audioch1 = pygame.mixer.Channel(1)
+
+    sounds[SIMON_RED][0] = pygame.mixer.Sound("audio/red_500.wav")
+    sounds[SIMON_RED][1] = pygame.mixer.Sound("audio/red_250.wav")
+    sounds[SIMON_RED][2] = pygame.mixer.Sound("audio/red_125.wav")
+
+    sounds[SIMON_GREEN][0] = pygame.mixer.Sound("audio/green_500.wav")
+    sounds[SIMON_GREEN][1] = pygame.mixer.Sound("audio/green_250.wav")
+    sounds[SIMON_GREEN][2] = pygame.mixer.Sound("audio/green_125.wav")
+
+    sounds[SIMON_BLUE][0] = pygame.mixer.Sound("audio/blue_500.wav")
+    sounds[SIMON_BLUE][1] = pygame.mixer.Sound("audio/blue_250.wav")
+    sounds[SIMON_BLUE][2] = pygame.mixer.Sound("audio/blue_125.wav")
+
+    sounds[SIMON_YELLOW][0] = pygame.mixer.Sound("audio/yellow_500.wav")
+    sounds[SIMON_YELLOW][1] = pygame.mixer.Sound("audio/yellow_250.wav")
+    sounds[SIMON_YELLOW][2] = pygame.mixer.Sound("audio/yellow_125.wav")
+
+
+def playSound(color, dur):
+    global sounds
+    global audioch1
+    audioch1.play(sounds[color][dur])
 
 ######################################################################3
 ## Light control methods
@@ -187,16 +231,18 @@ def setPowerLight(bOn):
 
 def colorOff(color):
     LOG("colorOff : " + str(color))
-    ButtonLight[color].on()
-    SpotLights[color].on()
+    if color != SIMON_WHITE:
+        ButtonLight[color].on()
+        SpotLights[color].on()
     CenterLights[color][0].on()
     CenterLights[color][1].on()
     CenterLights[color][2].on()
 
 def colorOn(color):
     LOG("colorOn : " + str(color))
-    ButtonLight[color].off()
-    SpotLights[color].off()
+    if color != SIMON_WHITE:
+        ButtonLight[color].off()
+        SpotLights[color].off()
     CenterLights[color][0].off()
     CenterLights[color][1].off()
     CenterLights[color][2].off()
@@ -212,6 +258,14 @@ def centerWhiteOn(idx):
 
 def flashColor(color, dur, bSound):
     LOG("flashColor " + str(color) + ", dur=" + str(dur))
+    idx = 0
+    if bSound == True:
+        if dur < 0.2:
+            idx = 2
+        elif dur < 0.5:
+            idx = 1
+        playSound(color, idx)
+
     t = Timer(dur, colorOff, [color])
     colorOn(color)
     t.start()
@@ -247,6 +301,7 @@ def setupArduinos():
     # TODO
     LOG("setupArduionos")
     setupLights()
+    setupSounds()
     if bTestMode:
         useTestInput()
 
@@ -260,16 +315,57 @@ def checkArduions():
     else:
         #TODO
         try:
+            sendCommandToAll(CMD_ZERO, [], True)
             buttons = i2cbus.read_i2c_block_data(ardAddr, 1)
             return buttons != None and len(buttons) > 5
         except:
             return False
+
+attractSequence = [SIMON_WHITE, SIMON_RED, SIMON_GREEN, SIMON_BLUE, SIMON_YELLOW]
+#attractSequence = [SIMON_RED, SIMON_GREEN, SIMON_BLUE, SIMON_YELLOW]
+attractDur = 1.0
+
+def onAttractModeStep():
+    global gameState
+    global attractStep
+    global attractSequence
+    global attractDur
+    LOG("onAttractModeStep")
+    if gameState == STATE_ATTRACT:
+        # show the next color
+        if attractStep >= len(attractSequence):
+            attractStep = 0
+
+            #newGame()
+            #bWaitForState = True
+
+        attractThread = Timer(attractDur, onAttractModeStep, [])
+        flashColor(attractSequence[attractStep], attractDur, False)
+        attractStep = attractStep + 1
+        attractThread.start()
+    else:
+      attractThread = None
+
+
+def startAttractMode():
+    global gameState
+    global attractStep
+    global attractThread
+    global attractSequence
+    global attractDur
+    LOG("Start attract mode")
+    attractStep = 0
+    attractThread = Timer(attractDur, onAttractModeStep, [])
+    flashColor(attractSequence[attractStep], attractDur, False)
+    attractStep = attractStep + 1
+    attractThread.start()
 
 def newGame():
     global curSequence
     global curStep
     global bGameOver
     # Turn off all the lights, reset the sequence, then wait one second and start
+    sendCommandToAll(CMD_ZERO, [], True)
     t = Timer(1.0, gotoState, [STATE_COMPUTER])
     allLightsOff()
     curSequence = []
@@ -337,9 +433,9 @@ def showSequence():
 
 def showError():
     LOG("Showerror!!!  Game Over")
-    t1 = Timer(0.5, flashColor, [SIMON_RED, 0.25, True])
-    t2 = Timer(1.0, flashColor, [SIMON_RED, 0.25, True])
-    flashColor(SIMON_RED, 0.25, True)        
+    t1 = Timer(0.5, flashColor, [SIMON_RED, 0.25, False])
+    t2 = Timer(1.0, flashColor, [SIMON_RED, 0.25, False])
+    flashColor(SIMON_RED, 0.25, False)        
     t1.start()
     t2.start()
 
@@ -435,7 +531,7 @@ def readButtons():
         # read from i2c bus
         try:
             buttons = i2cbus.read_i2c_block_data(ardAddr, 1)
-            #LOG(buttons)
+            LOG(buttons)
             maxWeight = 0
             for i in range(SIMON_CENTER, SIMON_LAST+1):
                 if buttons[i] > maxWeight:
@@ -444,6 +540,7 @@ def readButtons():
         except:
             LOG("error reading i2c")
             pass    
+    #LOG("button pushed = " + str(buttonPushed))
     return buttonPushed
 
 
@@ -451,9 +548,14 @@ def readButtons():
 def gotoState(newState):
     global gameState
     global bWaitForState
+    global attractThread
     LOG("gamestate chainging from " + str(gameState) + " to " + str(newState))
     if newState == STATE_ATTRACT:
+        startAttractMode()
         sendCommandToAll(CMD_ATTRACT, [], True)
+    elif attractThread != None:
+        attractThread.cancel()
+        attractThread = None
 
 
     gameState = newState
