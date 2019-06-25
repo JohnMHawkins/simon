@@ -1,7 +1,7 @@
 import sys
 # PI
-#import smbus
-#from gpiozero import LED
+import smbus
+from gpiozero import LED
 import pygame.mixer
 from threading import Timer
 import threading
@@ -63,8 +63,8 @@ sounds = [[None, None, None],[None, None, None],[None, None, None],[None, None, 
 audioch1 = None
 
 # PI
-#i2cbus = smbus.SMBus(1)
-#ardAddr = 0x03
+i2cbus = smbus.SMBus(1)
+ardAddr = 0x03
 
 
 '''
@@ -96,7 +96,7 @@ CenterLights = [[None, None, None], [None, None, None], [None, None, None], [Non
 ############################################
 #test code for not on Pi
 # PI
-#'''
+'''
 class LED():
 
     def __init__(self, gpio):
@@ -109,7 +109,7 @@ class LED():
     def off(self):
         #print("--- turn off " + str(self.pin))
         pass
-#'''
+'''
 def pollInput():
     global buttonPushed
     bGet = True
@@ -266,9 +266,13 @@ def flashColor(color, dur, bSound):
             idx = 1
         playSound(color, idx)
 
-    t = Timer(dur, colorOff, [color])
-    colorOn(color)
-    t.start()
+    # we use a delay to syncronize sound and light
+    syncDelay = 0.45
+    t1 = Timer(syncDelay, colorOn, [color])
+    t2 = Timer(syncDelay + dur, colorOff, [color])
+    #colorOn(color)
+    t1.start()
+    t2.start()
 
 ##
 ############################################################3
@@ -336,6 +340,7 @@ def onAttractModeStep():
         if attractStep >= len(attractSequence):
             attractStep = 0
 
+            # for testing without a center button
             #newGame()
             #bWaitForState = True
 
@@ -475,11 +480,13 @@ def evaluateChoice():
         if curStep < len(curSequence):
             # player is right so far, show the color and go to the next one
             nextState = STATE_START_TIMER
+            delay = 0.5
         else:
             # player got it right, add another color
             nextState = STATE_COMPUTER
+            delay = 1.5
 
-        t = Timer(0.5, gotoState, [nextState])
+        t = Timer(delay, gotoState, [nextState])
         flashColor(buttonPushed, 0.5, True)
         t.start()
     else:
