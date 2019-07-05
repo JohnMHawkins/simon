@@ -454,8 +454,8 @@ def showSequence():
 
 def showError():
     LOG("Showerror!!!  Game Over")
-    t1 = Timer(0.5, flashColor, [SIMON_ERROR, 0.5, True])
-    t2 = Timer(1.0, flashColor, [SIMON_ERROR, 0.5, True])
+    t1 = Timer(0.6, flashColor, [SIMON_ERROR, 0.5, True])
+    t2 = Timer(1.2, flashColor, [SIMON_ERROR, 0.5, True])
     flashColor(SIMON_ERROR, 0.5, True)        
     t1.start()
     t2.start()
@@ -468,7 +468,7 @@ def makePlayersChoice():
     if bTestMode:
         # set button pushed to last color
         if curStep < len(curSequence):
-            if len(curSequence) > 15:
+            if len(curSequence) > 3:
                 buttonPushed = -1   # end the game
             else:
                 buttonPushed = curSequence[curStep]
