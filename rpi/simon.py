@@ -23,6 +23,7 @@ SIMON_GREEN  = 2
 SIMON_BLUE   = 3
 SIMON_YELLOW = 4
 SIMON_LAST   = 4
+SIMON_ERROR  = 5
 
 # Game states
 STATE_INIT     = 0  # booting up and initializing
@@ -59,7 +60,7 @@ buttonPushed = -1
 attractStep = 0
 attractThread = None
 
-sounds = [[None, None, None],[None, None, None],[None, None, None],[None, None, None],[None, None, None]]
+sounds = [[None, None, None],[None, None, None],[None, None, None],[None, None, None],[None, None, None],[None, None, None]]
 audioch1 = None
 
 # PI
@@ -89,9 +90,9 @@ Center:  3x wrgby = 15
 '''
 
 PowerLight = None
-ButtonLight = [None, None, None, None, None] 
-SpotLights = [None, None, None, None, None] 
-CenterLights = [[None, None, None], [None, None, None], [None, None, None], [None, None, None], [None, None, None]] 
+ButtonLight = [None, None, None, None, None, None] 
+SpotLights = [None, None, None, None, None, None] 
+CenterLights = [[None, None, None], [None, None, None], [None, None, None], [None, None, None], [None, None, None], [None, None, None]] 
 
 ############################################
 #test code for not on Pi
@@ -144,37 +145,45 @@ def setupLights():
     global SpotLights
     global CenterLights
     
-    PowerLight = LED(4)
+    PowerLight = LED(14)                 # GPIO 14
     
-    ButtonLight[SIMON_RED] = LED(14)
-    ButtonLight[SIMON_GREEN] = LED(17)
-    ButtonLight[SIMON_BLUE] = LED(27)
-    ButtonLight[SIMON_YELLOW] = LED(23)
+    ButtonLight[SIMON_RED] = LED(4)     # GPIO 4
+    ButtonLight[SIMON_GREEN] = LED(17)  # GPIO 17
+    ButtonLight[SIMON_BLUE] = LED(27)   # GPIO 27
+    ButtonLight[SIMON_YELLOW] = LED(22) # GPIO 22
 
-    SpotLights[SIMON_RED] = LED(15)
-    SpotLights[SIMON_GREEN] = LED(18)
-    SpotLights[SIMON_BLUE] = LED(22)
-    SpotLights[SIMON_YELLOW] = LED(24)
+    SpotLights[SIMON_RED] = LED(15)     #
+    SpotLights[SIMON_GREEN] = LED(18)   #
+    SpotLights[SIMON_BLUE] = LED(23)    #
+    SpotLights[SIMON_YELLOW] = LED(24)  #
 
-    CenterLights[SIMON_WHITE][0] = LED(10)
-    CenterLights[SIMON_WHITE][1] = LED(9)
-    CenterLights[SIMON_WHITE][2] = LED(25)
+    CenterLights[SIMON_WHITE][0] = LED(6)   # GPIO 6
+    CenterLights[SIMON_WHITE][1] = LED(13)  # GPIO 13
+    CenterLights[SIMON_WHITE][2] = LED(19)  # GPIO 19
 
-    CenterLights[SIMON_RED][0] = LED(11)
-    CenterLights[SIMON_RED][1] = LED(8)
+    CenterLights[SIMON_RED][0] = LED(10)    # GPIO 10
+    CenterLights[SIMON_RED][1] = LED(8) 
     CenterLights[SIMON_RED][2] = LED(7)
 
-    CenterLights[SIMON_GREEN][0] = LED(5)
-    CenterLights[SIMON_GREEN][1] = LED(6)
+    CenterLights[SIMON_GREEN][0] = LED(9)   # GPIO 9
+    CenterLights[SIMON_GREEN][1] = LED(26)   
     CenterLights[SIMON_GREEN][2] = LED(12)
 
-    CenterLights[SIMON_BLUE][0] = LED(13)
-    CenterLights[SIMON_BLUE][1] = LED(19)
+    CenterLights[SIMON_BLUE][0] = LED(11)   # GPIO 11
+    CenterLights[SIMON_BLUE][1] = LED(25)
     CenterLights[SIMON_BLUE][2] = LED(16)
 
-    CenterLights[SIMON_YELLOW][0] = LED(26)
+    CenterLights[SIMON_YELLOW][0] = LED(5) # GPIO 5
     CenterLights[SIMON_YELLOW][1] = LED(20)
     CenterLights[SIMON_YELLOW][2] = LED(21)
+
+    # error is just RED
+    ButtonLight[SIMON_ERROR] = ButtonLight[SIMON_RED]
+    SpotLights[SIMON_ERROR] = SpotLights[SIMON_RED]   #
+    CenterLights[SIMON_ERROR][0] = CenterLights[SIMON_RED][0]
+    CenterLights[SIMON_ERROR][1] = CenterLights[SIMON_RED][1] 
+    CenterLights[SIMON_ERROR][2] = CenterLights[SIMON_RED][2]
+
 
 def setupSounds():
     global sounds
@@ -199,6 +208,8 @@ def setupSounds():
     sounds[SIMON_YELLOW][1] = pygame.mixer.Sound("audio/yellow_250.wav")
     sounds[SIMON_YELLOW][2] = pygame.mixer.Sound("audio/yellow_125.wav")
 
+    sounds[SIMON_ERROR][0] = pygame.mixer.Sound("audio/error_500.wav")
+
 
 def playSound(color, dur):
     global sounds
@@ -212,34 +223,25 @@ def playSound(color, dur):
 def allLightsOff():
     for i in range(SIMON_RED, SIMON_LAST + 1):
         #print("light off " + str(i))
-        ButtonLight[i].on()
-        SpotLights[i].on()
+        ButtonLight[i].off()
+        SpotLights[i].off()
         for j in range(0, 3):
-            CenterLights[i][j].on()
+            CenterLights[i][j].off()
     for j in range(0, 3):
         #print("center off " + str(j))
-        CenterLights[SIMON_WHITE][j].on()
+        CenterLights[SIMON_WHITE][j].off()
 
     print("done all lights off")
 
 def setPowerLight(bOn):
     if bOn:
-        PowerLight.off()
-    else:
         PowerLight.on()
+    else:
+        PowerLight.off()
 
 
 def colorOff(color):
     LOG("colorOff : " + str(color))
-    if color != SIMON_WHITE:
-        ButtonLight[color].on()
-        SpotLights[color].on()
-    CenterLights[color][0].on()
-    CenterLights[color][1].on()
-    CenterLights[color][2].on()
-
-def colorOn(color):
-    LOG("colorOn : " + str(color))
     if color != SIMON_WHITE:
         ButtonLight[color].off()
         SpotLights[color].off()
@@ -247,13 +249,22 @@ def colorOn(color):
     CenterLights[color][1].off()
     CenterLights[color][2].off()
 
+def colorOn(color):
+    LOG("colorOn : " + str(color))
+    if color != SIMON_WHITE:
+        ButtonLight[color].on()
+        SpotLights[color].on()
+    CenterLights[color][0].on()
+    CenterLights[color][1].on()
+    CenterLights[color][2].on()
+
 def centerWhiteOff(idx):
     #LOG("centerWhiteOff : " + str(idx))
-    CenterLights[SIMON_CENTER][idx].on()
+    CenterLights[SIMON_CENTER][idx].off()
 
 def centerWhiteOn(idx):
     #LOG("centerWhiteOn : " + str(idx))
-    CenterLights[SIMON_CENTER][idx].off()
+    CenterLights[SIMON_CENTER][idx].on()
 
 
 def flashColor(color, dur, bSound):
@@ -267,7 +278,7 @@ def flashColor(color, dur, bSound):
         playSound(color, idx)
 
     # we use a delay to syncronize sound and light
-    syncDelay = 0.45
+    syncDelay = 0.55
     t1 = Timer(syncDelay, colorOn, [color])
     t2 = Timer(syncDelay + dur, colorOff, [color])
     #colorOn(color)
@@ -279,10 +290,11 @@ def flashColor(color, dur, bSound):
 
 def startPlayerTimer():
     LOG("startPlayerTimer")
-    t1 = Timer(1.0, centerWhiteOff, [2])
-    t2 = Timer(2.0, centerWhiteOff, [1])
-    t3 = Timer(3.0, centerWhiteOff, [0])
-    tDone = Timer(3.0, gotoState, [STATE_PLAYER])
+    timerClick = 1.0
+    t1 = Timer(timerClick, centerWhiteOff, [2])
+    t2 = Timer(2*timerClick, centerWhiteOff, [1])
+    t3 = Timer(3*timerClick, centerWhiteOff, [0])
+    tDone = Timer(3*timerClick, gotoState, [STATE_PLAYER])
     for i in range(0,3):
         centerWhiteOn(i)
         
@@ -307,20 +319,22 @@ def setupArduinos():
     setupLights()
     setupSounds()
     if bTestMode:
-        useTestInput()
+        pass
+        #useTestInput()
 
 
 
 def checkArduions():
     # ask arduionos if they are ready
     # TODO
-    if bTestMode:
+    if False: #bTestMode:
         return True
     else:
         #TODO
         try:
             sendCommandToAll(CMD_ZERO, [], True)
             buttons = i2cbus.read_i2c_block_data(ardAddr, 1)
+            LOG(buttons)
             return buttons != None and len(buttons) > 5
         except:
             return False
@@ -410,7 +424,9 @@ def showNextColor(dur):
             # reset curstep for player
             curStep = 0
             print("reset curstep to zero")
-            gotoState(STATE_START_TIMER)
+            t = Timer(1.0, gotoState, [STATE_START_TIMER])
+            t.start()
+            #gotoState(STATE_START_TIMER)
     else:
         t = Timer(dur, showNextColor, [dur])
         flashColor(curSequence[curStep], dur, True)
@@ -438,9 +454,9 @@ def showSequence():
 
 def showError():
     LOG("Showerror!!!  Game Over")
-    t1 = Timer(0.5, flashColor, [SIMON_RED, 0.25, False])
-    t2 = Timer(1.0, flashColor, [SIMON_RED, 0.25, False])
-    flashColor(SIMON_RED, 0.25, False)        
+    t1 = Timer(0.5, flashColor, [SIMON_ERROR, 0.5, True])
+    t2 = Timer(1.0, flashColor, [SIMON_ERROR, 0.5, True])
+    flashColor(SIMON_ERROR, 0.5, True)        
     t1.start()
     t2.start()
 
@@ -480,18 +496,18 @@ def evaluateChoice():
         if curStep < len(curSequence):
             # player is right so far, show the color and go to the next one
             nextState = STATE_START_TIMER
-            delay = 0.5
+            delay = 1.5
         else:
             # player got it right, add another color
             nextState = STATE_COMPUTER
-            delay = 1.5
+            delay = 2.5
 
         t = Timer(delay, gotoState, [nextState])
         flashColor(buttonPushed, 0.5, True)
         t.start()
     else:
         # failed!!!!
-        t = Timer(2.0, gotoState, [STATE_GAMEOVER])
+        t = Timer(2.5, gotoState, [STATE_GAMEOVER])
         showError()
         t.start()
 
@@ -533,12 +549,12 @@ def readButtons():
     buttons[SIMON_RED] = weight of red button, etc
 
     '''
-    if bTestMode == False:
+    if bTestMode == False or gameState == STATE_ATTRACT:
         buttonPushed = -1
         # read from i2c bus
         try:
             buttons = i2cbus.read_i2c_block_data(ardAddr, 1)
-            LOG(buttons)
+            #LOG(buttons)
             maxWeight = 0
             for i in range(SIMON_CENTER, SIMON_LAST+1):
                 if buttons[i] > maxWeight:
