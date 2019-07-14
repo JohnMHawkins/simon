@@ -1,0 +1,15 @@
+<html>
+    <body>
+        <h1>Update Account Info</h1>
+        <form name="registerform" method="POST" action="api/auth/updateprofile">
+            New Email: <input type="text" name="email" /><br>
+            Please re-enter your Password: <input type="password" name="password" /><br>
+            <a href="javascript: submitregister()">Update</a>
+        </form>
+        <script type="text/javascript">
+        function submitregister() {
+            document.registerform.submit();
+        }
+        </script>
+    </body>
+</html>

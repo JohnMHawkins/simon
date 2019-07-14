@@ -1,0 +1,14 @@
+<html>
+    <body>
+        <h1>Request reset code</h1>
+        <form name="resetform" method="POST" action="api/auth/requestreset">
+            Email: <input type="text" name="email" /><br>
+            <a href="javascript: submitrequest()">Request Reset</a>
+        </form>
+        <script type="text/javascript">
+        function submitrequest() {
+            document.resetform.submit();
+        }
+        </script>
+    </body>
+</html>

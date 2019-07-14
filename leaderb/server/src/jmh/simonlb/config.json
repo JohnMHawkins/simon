@@ -1,0 +1,15 @@
+{
+    "PublicUrl" : "localhost:8080",
+    "Port" : ":8080",
+    "WWWRoot":"wwwroot",
+    "DefaultFile":"index.html",
+    "ApiBase":"api",
+    "FileBase" : "/",
+    "DBPath" : "127.0.0.1:27017",
+    "SessionCollName" : "sessioncache",
+    "AppName" : "simonlb",
+    "AppVersion" : "0.1.1",
+    "AWSRegion" : "us-east-1",
+    "AWSProfile" : "default",
+    "LoggerFirehoseDeliveryStream" : "hawk-test-firehose1-useast-1"
+}

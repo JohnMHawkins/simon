@@ -1,0 +1,15 @@
+<html>
+    <body>
+        <h1>Please login</h1>
+        <form name="loginform" method="POST" action="api/auth/login">
+            Username: <input type="text" name="username" /><br>
+            Password: <input type="password" name="password" /><br>
+            <a href="javascript: submitlogin()">Do Login</a>
+        </form>
+        <script type="text/javascript">
+        function submitlogin() {
+            document.loginform.submit();
+        }
+        </script>
+    </body>
+</html>

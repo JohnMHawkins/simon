@@ -1,0 +1,17 @@
+<html>
+    <body>
+        <h1>Reset Password:</h1>
+        <form name="resetform" method="POST" action="api/auth/resetpassword">
+            Username: <input type="text" name="username" /><br>
+            Reset Code: <input type="text" name="resetcode" /><br>
+            Password: <input type="password" name="password" /><br>
+            Confirm: <input type="password" name="confirm" /><br>
+            <a href="javascript: submitreset()">Reset Password</a>
+        </form>
+        <script type="text/javascript">
+        function submitreset() {
+            document.resetform.submit();
+        }
+        </script>
+    </body>
+</html>

@@ -1,0 +1,15 @@
+<html>
+    <body>
+        <h1>Get list of teams</h1>
+        <form name="registerteamform" method="GET" action="api/teams/fetch">
+            Team Name: <input type="text" name="name" /><br>
+            Sponsor: <input type="text" name="sponsor" /><br>
+            <a href="javascript: submitregister()">Get Teams</a>
+        </form>
+        <script type="text/javascript">
+        function submitregister() {
+            document.registerteamform.submit();
+        }
+        </script>
+    </body>
+</html>
