@@ -1,12 +1,17 @@
 import sys
 # PI
-import smbus
-from gpiozero import LED
+#import smbus
+#from gpiozero import LED
+
 import pygame.mixer
 from threading import Timer
 import threading
 import random
 import time
+
+from DMXEnttecPro import Controller
+from DMXEnttecPro.utils import get_port_by_serial_number, get_port_by_product_id
+
 
 '''
 sudo apt-get install python-smbus python3-smbus python-dev python3-dev i2c-tools
@@ -64,8 +69,12 @@ sounds = [[None, None, None],[None, None, None],[None, None, None],[None, None, 
 audioch1 = None
 
 # PI
-i2cbus = smbus.SMBus(1)
-ardAddr = 0x03
+#i2cbus = smbus.SMBus(1)
+#ardAddr = 0x03
+
+
+dmxUsb = get_port_by_product_id(24577)
+dmx = Controller(dmxUsb)
 
 
 '''
@@ -97,7 +106,7 @@ CenterLights = [[None, None, None], [None, None, None], [None, None, None], [Non
 ############################################
 #test code for not on Pi
 # PI
-'''
+
 class LED():
 
     def __init__(self, gpio):
@@ -110,7 +119,7 @@ class LED():
     def off(self):
         #print("--- turn off " + str(self.pin))
         pass
-'''
+
 def pollInput():
     global buttonPushed
     bGet = True
@@ -219,12 +228,74 @@ def playSound(color, dur):
 ######################################################################3
 ## Light control methods
 
+
+# DMX methods
+
+DMX_RED = 0
+DMX_GREEN = 7
+DMX_BLUE = 15
+DMX_YELLOW = 23
+
+def DMXLightOn(color):
+    if dmx == None:
+        return
+
+    if color == SIMON_RED:
+        dmx.set_channel(DMX_RED + 1, 255)
+        dmx.set_channel(DMX_RED + 2, 0)
+        dmx.set_channel(DMX_RED + 3, 0)
+    
+    elif color == SIMON_GREEN:
+        dmx.set_channel(DMX_GREEN + 1, 0)
+        dmx.set_channel(DMX_GREEN + 2, 255)
+        dmx.set_channel(DMX_GREEN + 3, 0)
+
+    elif color == SIMON_BLUE:
+        dmx.set_channel(DMX_BLUE + 1, 0)
+        dmx.set_channel(DMX_BLUE + 2, 0)
+        dmx.set_channel(DMX_BLUE + 3, 255)
+
+    elif color == SIMON_YELLOW:
+        dmx.set_channel(DMX_YELLOW + 1, 255)
+        dmx.set_channel(DMX_YELLOW + 2, 255)
+        dmx.set_channel(DMX_YELLOW + 3, 0)
+
+    dmx.submit()
+
+
+def DMXLightOff(color):
+    if dmx == None:
+        return
+
+    if color == SIMON_RED:
+        dmx.set_channel(DMX_RED + 1, 0)
+        dmx.set_channel(DMX_RED + 2, 0)
+        dmx.set_channel(DMX_RED + 3, 0)
+
+    elif color == SIMON_GREEN:
+        dmx.set_channel(DMX_GREEN + 1, 0)
+        dmx.set_channel(DMX_GREEN + 2, 0)
+        dmx.set_channel(DMX_GREEN + 3, 0)
+
+    elif color == SIMON_BLUE:
+        dmx.set_channel(DMX_BLUE + 1, 0)
+        dmx.set_channel(DMX_BLUE + 2, 0)
+        dmx.set_channel(DMX_BLUE + 3, 0)
+
+    elif color == SIMON_YELLOW:
+        dmx.set_channel(DMX_YELLOW + 1, 0)
+        dmx.set_channel(DMX_YELLOW + 2, 0)
+        dmx.set_channel(DMX_YELLOW + 3, 0)
+
+    dmx.submit()
+
 # all lights except power
 def allLightsOff():
     for i in range(SIMON_RED, SIMON_LAST + 1):
         #print("light off " + str(i))
         ButtonLight[i].off()
         SpotLights[i].off()
+        DMXLightOff(i)
         for j in range(0, 3):
             CenterLights[i][j].off()
     for j in range(0, 3):
@@ -245,6 +316,7 @@ def colorOff(color):
     if color != SIMON_WHITE:
         ButtonLight[color].off()
         SpotLights[color].off()
+        DMXLightOff(color)
     CenterLights[color][0].off()
     CenterLights[color][1].off()
     CenterLights[color][2].off()
@@ -254,6 +326,7 @@ def colorOn(color):
     if color != SIMON_WHITE:
         ButtonLight[color].on()
         SpotLights[color].on()
+        DMXLightOn(color)
     CenterLights[color][0].on()
     CenterLights[color][1].on()
     CenterLights[color][2].on()
@@ -289,8 +362,14 @@ def flashColor(color, dur, bSound):
 ############################################################3
 
 def startPlayerTimer():
+    global curSequence
     LOG("startPlayerTimer")
     timerClick = 1.0
+    if len(curSequence) > 12:
+        timerClick = 0.25
+    elif len(curSequence) > 6:
+        timerClick = 0.5
+
     t1 = Timer(timerClick, centerWhiteOff, [2])
     t2 = Timer(2*timerClick, centerWhiteOff, [1])
     t3 = Timer(3*timerClick, centerWhiteOff, [0])
@@ -327,7 +406,7 @@ def setupArduinos():
 def checkArduions():
     # ask arduionos if they are ready
     # TODO
-    if False: #bTestMode:
+    if True: #bTestMode:
         return True
     else:
         #TODO
@@ -355,8 +434,8 @@ def onAttractModeStep():
             attractStep = 0
 
             # for testing without a center button
-            #newGame()
-            #bWaitForState = True
+            newGame()
+            bWaitForState = True
 
         attractThread = Timer(attractDur, onAttractModeStep, [])
         flashColor(attractSequence[attractStep], attractDur, False)
@@ -468,9 +547,10 @@ def makePlayersChoice():
     if bTestMode:
         # set button pushed to last color
         if curStep < len(curSequence):
-            if len(curSequence) > 3:
+            if len(curSequence) > 20:
                 buttonPushed = -1   # end the game
             else:
+                LOG("Sequence Length " + str(len(curSequence)))
                 buttonPushed = curSequence[curStep]
     LOG("Player pushed: " + str(buttonPushed))
 
@@ -549,7 +629,7 @@ def readButtons():
     buttons[SIMON_RED] = weight of red button, etc
 
     '''
-    if bTestMode == False or gameState == STATE_ATTRACT:
+    if bTestMode == False: # or gameState == STATE_ATTRACT:
         buttonPushed = -1
         # read from i2c bus
         try:
