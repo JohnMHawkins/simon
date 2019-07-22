@@ -1,7 +1,7 @@
 import sys
 # PI
-#import smbus
-#from gpiozero import LED
+import smbus
+from gpiozero import LED
 
 import pygame.mixer
 from threading import Timer
@@ -16,6 +16,7 @@ from DMXEnttecPro.utils import get_port_by_serial_number, get_port_by_product_id
 '''
 sudo apt-get install python-smbus python3-smbus python-dev python3-dev i2c-tools
 sudo apt install python3-gpiozero
+sudo pip3 install DMXEnttecPro
 '''
 
 bTestMode = True
@@ -68,14 +69,22 @@ attractThread = None
 sounds = [[None, None, None],[None, None, None],[None, None, None],[None, None, None],[None, None, None],[None, None, None]]
 audioch1 = None
 
+
+def LOG(msg):
+    print(msg)
+
+
 # PI
-#i2cbus = smbus.SMBus(1)
-#ardAddr = 0x03
+i2cbus = smbus.SMBus(1)
+ardAddr = 0x03
 
 
-dmxUsb = get_port_by_product_id(24577)
-dmx = Controller(dmxUsb)
-
+try:
+    dmxUsb = get_port_by_product_id(24577)
+    dmx = Controller(dmxUsb)
+except:
+    LOG("No DMX device detected")
+    dmx = None
 
 '''
 4, 24, 17, 25, 27, 8, 22, 7, 10, 12, 9, 16, 11, 20, 5, 21
@@ -84,17 +93,17 @@ dmx = Controller(dmxUsb)
 
 Pins for light relays:
 7      - GPIO 4      - power on:  
-8, 10  - GPIO 14, 15 - Red:  button, spot
-11, 12 - GPIO 17, 18 - Green:  button, spot
-13, 15 - GPIO 27, 22 - Blue:  button, spot
-16, 18 - gpio 23, 24 - Yellow: button, spot
+8, 10  - GPIO 21,  //14, 15 - Red:  button, spot
+11, 12 - GPIO 20,  //17, 18 - Green:  button, spot
+13, 15 - GPIO 16,  //27, 22 - Blue:  button, spot
+16, 18 - gpio 12,  // 23, 24 - Yellow: button, spot
 
 Center:  3x wrgby = 15
-19, 21, 22 - GPIO 10, 9, 25  - w0, 1, 2 
-23, 24, 26 - GPIO 11, 8, 7   - r0, 1, 2  
-29, 31, 32 - GPIO 5, 6, 12   - g0, 1, 2
-33, 35, 36 - GPIO 13, 19, 16 - b0, 1, 2
-37, 38, 40 - GPIO 26, 20, 21 - y0, 1, 2
+19, 21, 22 - GPIO 27, 22, 4 //,  10, 9, 25  - w0, 1, 2 
+23, 24, 26 - GPIO 6  // 11, 8, 7   - r0, 1, 2  
+29, 31, 32 - GPIO 13 //5, 6, 12   - g0, 1, 2
+33, 35, 36 - GPIO 19 //13, 19, 16 - b0, 1, 2
+37, 38, 40 - GPIO 26 //26, 20, 21 - y0, 1, 2
 
 '''
 
@@ -106,7 +115,7 @@ CenterLights = [[None, None, None], [None, None, None], [None, None, None], [Non
 ############################################
 #test code for not on Pi
 # PI
-
+'''
 class LED():
 
     def __init__(self, gpio):
@@ -119,6 +128,7 @@ class LED():
     def off(self):
         #print("--- turn off " + str(self.pin))
         pass
+'''
 
 def pollInput():
     global buttonPushed
@@ -154,37 +164,37 @@ def setupLights():
     global SpotLights
     global CenterLights
     
-    PowerLight = LED(14)                 # GPIO 14
+    PowerLight = LED(11)                 # GPIO 14
     
-    ButtonLight[SIMON_RED] = LED(4)     # GPIO 4
-    ButtonLight[SIMON_GREEN] = LED(17)  # GPIO 17
-    ButtonLight[SIMON_BLUE] = LED(27)   # GPIO 27
-    ButtonLight[SIMON_YELLOW] = LED(22) # GPIO 22
+    ButtonLight[SIMON_RED] = LED(26)     # GPIO 4
+    ButtonLight[SIMON_GREEN] = LED(19)  # GPIO 17
+    ButtonLight[SIMON_BLUE] = LED(13)   # GPIO 27
+    ButtonLight[SIMON_YELLOW] = LED(6) # GPIO 22
 
-    SpotLights[SIMON_RED] = LED(15)     #
-    SpotLights[SIMON_GREEN] = LED(18)   #
-    SpotLights[SIMON_BLUE] = LED(23)    #
-    SpotLights[SIMON_YELLOW] = LED(24)  #
+    SpotLights[SIMON_RED] = LED(27)     #
+    SpotLights[SIMON_GREEN] = LED(22)   #
+    SpotLights[SIMON_BLUE] = LED(4)    #
+    SpotLights[SIMON_YELLOW] = LED(17)  #
 
-    CenterLights[SIMON_WHITE][0] = LED(6)   # GPIO 6
-    CenterLights[SIMON_WHITE][1] = LED(13)  # GPIO 13
-    CenterLights[SIMON_WHITE][2] = LED(19)  # GPIO 19
+    CenterLights[SIMON_WHITE][0] = LED(10)   # GPIO 6
+    CenterLights[SIMON_WHITE][1] = LED(9)  # GPIO 13
+    CenterLights[SIMON_WHITE][2] = LED(5)  # GPIO 19
 
-    CenterLights[SIMON_RED][0] = LED(10)    # GPIO 10
-    CenterLights[SIMON_RED][1] = LED(8) 
-    CenterLights[SIMON_RED][2] = LED(7)
+    CenterLights[SIMON_RED][0] = LED(12)    # GPIO 10
+    CenterLights[SIMON_RED][1] = LED(14) 
+    CenterLights[SIMON_RED][2] = LED(15)
 
-    CenterLights[SIMON_GREEN][0] = LED(9)   # GPIO 9
-    CenterLights[SIMON_GREEN][1] = LED(26)   
-    CenterLights[SIMON_GREEN][2] = LED(12)
+    CenterLights[SIMON_GREEN][0] = LED(16)   # GPIO 9
+    CenterLights[SIMON_GREEN][1] = LED(18)   
+    CenterLights[SIMON_GREEN][2] = LED(23)
 
-    CenterLights[SIMON_BLUE][0] = LED(11)   # GPIO 11
-    CenterLights[SIMON_BLUE][1] = LED(25)
-    CenterLights[SIMON_BLUE][2] = LED(16)
+    CenterLights[SIMON_BLUE][0] = LED(20)   # GPIO 11
+    CenterLights[SIMON_BLUE][1] = LED(24) #25
+    CenterLights[SIMON_BLUE][2] = LED(25) #24
 
-    CenterLights[SIMON_YELLOW][0] = LED(5) # GPIO 5
-    CenterLights[SIMON_YELLOW][1] = LED(20)
-    CenterLights[SIMON_YELLOW][2] = LED(21)
+    CenterLights[SIMON_YELLOW][0] = LED(21) # GPIO 5
+    CenterLights[SIMON_YELLOW][1] = LED(8)
+    CenterLights[SIMON_YELLOW][2] = LED(7)
 
     # error is just RED
     ButtonLight[SIMON_ERROR] = ButtonLight[SIMON_RED]
@@ -231,33 +241,75 @@ def playSound(color, dur):
 
 # DMX methods
 
+# 3-channel mode (e.g. red = d001, green = d004, blue = d007, yellow = d010 )
+dmx7Chan = False
 DMX_RED = 0
-DMX_GREEN = 7
-DMX_BLUE = 15
-DMX_YELLOW = 23
+DMX_GREEN = 3
+DMX_BLUE = 6
+DMX_YELLOW = 9
+
+# 7 - channel Mode (e.g. red = a001, green = a008, blue = a015)
+dmx7Chan = True
+dmxIntensity = 255
+DMX_RED = 1
+DMX_GREEN = 1 #8
+DMX_BLUE = 1 #15
+DMX_YELLOW = 1 #22
+
 
 def DMXLightOn(color):
     if dmx == None:
         return
 
+
     if color == SIMON_RED:
+        if dmx7Chan:
+            dmx.set_channel(DMX_RED,dmxIntensity)
         dmx.set_channel(DMX_RED + 1, 255)
         dmx.set_channel(DMX_RED + 2, 0)
         dmx.set_channel(DMX_RED + 3, 0)
     
     elif color == SIMON_GREEN:
+        if dmx7Chan:
+            dmx.set_channel(DMX_GREEN,dmxIntensity)
         dmx.set_channel(DMX_GREEN + 1, 0)
         dmx.set_channel(DMX_GREEN + 2, 255)
         dmx.set_channel(DMX_GREEN + 3, 0)
 
     elif color == SIMON_BLUE:
+        if dmx7Chan:
+            dmx.set_channel(DMX_BLUE,dmxIntensity)
         dmx.set_channel(DMX_BLUE + 1, 0)
         dmx.set_channel(DMX_BLUE + 2, 0)
         dmx.set_channel(DMX_BLUE + 3, 255)
 
     elif color == SIMON_YELLOW:
+        if dmx7Chan:
+            dmx.set_channel(DMX_YELLOW,dmxIntensity)
         dmx.set_channel(DMX_YELLOW + 1, 255)
-        dmx.set_channel(DMX_YELLOW + 2, 255)
+        dmx.set_channel(DMX_YELLOW + 2, 128)
+        dmx.set_channel(DMX_YELLOW + 3, 0)
+
+    elif color == SIMON_ERROR:
+        if dmx7Chan:
+            dmx.set_channel(DMX_RED,dmxIntensity)
+            dmx.set_channel(DMX_GREEN,dmxIntensity)
+            dmx.set_channel(DMX_BLUE,dmxIntensity)
+            dmx.set_channel(DMX_YELLOW,dmxIntensity)
+        dmx.set_channel(DMX_RED + 1, 255)
+        dmx.set_channel(DMX_RED + 2, 0)
+        dmx.set_channel(DMX_RED + 3, 0)
+
+        dmx.set_channel(DMX_GREEN + 1, 255)
+        dmx.set_channel(DMX_GREEN + 2, 0)
+        dmx.set_channel(DMX_GREEN + 3, 0)
+
+        dmx.set_channel(DMX_BLUE + 1, 255)
+        dmx.set_channel(DMX_BLUE + 2, 0)
+        dmx.set_channel(DMX_BLUE + 3, 0)
+
+        dmx.set_channel(DMX_YELLOW + 1, 255)
+        dmx.set_channel(DMX_YELLOW + 2, 0)
         dmx.set_channel(DMX_YELLOW + 3, 0)
 
     dmx.submit()
@@ -268,21 +320,51 @@ def DMXLightOff(color):
         return
 
     if color == SIMON_RED:
+        if dmx7Chan:
+            dmx.set_channel(DMX_RED,0)
         dmx.set_channel(DMX_RED + 1, 0)
         dmx.set_channel(DMX_RED + 2, 0)
         dmx.set_channel(DMX_RED + 3, 0)
 
     elif color == SIMON_GREEN:
+        if dmx7Chan:
+            dmx.set_channel(DMX_GREEN,0)
         dmx.set_channel(DMX_GREEN + 1, 0)
         dmx.set_channel(DMX_GREEN + 2, 0)
         dmx.set_channel(DMX_GREEN + 3, 0)
 
     elif color == SIMON_BLUE:
+        if dmx7Chan:
+            dmx.set_channel(DMX_BLUE,0)
         dmx.set_channel(DMX_BLUE + 1, 0)
         dmx.set_channel(DMX_BLUE + 2, 0)
         dmx.set_channel(DMX_BLUE + 3, 0)
 
     elif color == SIMON_YELLOW:
+        if dmx7Chan:
+            dmx.set_channel(DMX_YELLOW,0)
+        dmx.set_channel(DMX_YELLOW + 1, 0)
+        dmx.set_channel(DMX_YELLOW + 2, 0)
+        dmx.set_channel(DMX_YELLOW + 3, 0)
+
+    elif color == SIMON_ERROR:
+        if dmx7Chan:
+            dmx.set_channel(DMX_RED,0)
+            dmx.set_channel(DMX_GREEN,0)
+            dmx.set_channel(DMX_BLUE,0)
+            dmx.set_channel(DMX_YELLOW,0)
+        dmx.set_channel(DMX_RED + 1, 0)
+        dmx.set_channel(DMX_RED + 2, 0)
+        dmx.set_channel(DMX_RED + 3, 0)
+
+        dmx.set_channel(DMX_GREEN + 1, 0)
+        dmx.set_channel(DMX_GREEN + 2, 0)
+        dmx.set_channel(DMX_GREEN + 3, 0)
+
+        dmx.set_channel(DMX_BLUE + 1, 0)
+        dmx.set_channel(DMX_BLUE + 2, 0)
+        dmx.set_channel(DMX_BLUE + 3, 0)
+
         dmx.set_channel(DMX_YELLOW + 1, 0)
         dmx.set_channel(DMX_YELLOW + 2, 0)
         dmx.set_channel(DMX_YELLOW + 3, 0)
@@ -381,15 +463,6 @@ def startPlayerTimer():
     t2.start()
     t3.start()
     tDone.start()
-
-
-
-def LOG(msg):
-    print(msg)
-
-def sendDMX(dest, cmd, data):
-    # TODO
-    pass
 
 
 def setupArduinos():
@@ -547,7 +620,7 @@ def makePlayersChoice():
     if bTestMode:
         # set button pushed to last color
         if curStep < len(curSequence):
-            if len(curSequence) > 20:
+            if len(curSequence) > 0:
                 buttonPushed = -1   # end the game
             else:
                 LOG("Sequence Length " + str(len(curSequence)))
@@ -679,7 +752,6 @@ def loop():
 
     if gameState == STATE_INIT:
         setupArduinos()
-        sendDMX(SIMON_CENTER, DMX_OFF, None)
         gotoState(STATE_WAIT)
 
     elif gameState == STATE_WAIT:
