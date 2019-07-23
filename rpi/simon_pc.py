@@ -1,7 +1,7 @@
 import sys
 # PI
-import smbus
-from gpiozero import LED
+#import smbus
+#from gpiozero import LED
 
 import pygame.mixer
 from threading import Timer
@@ -75,8 +75,8 @@ def LOG(msg):
 
 
 # PI
-i2cbus = smbus.SMBus(1)
-ardAddr = 0x03
+#i2cbus = smbus.SMBus(1)
+#ardAddr = 0x03
 
 
 try:
@@ -115,7 +115,7 @@ CenterLights = [[None, None, None], [None, None, None], [None, None, None], [Non
 ############################################
 #test code for not on Pi
 # PI
-'''
+
 class LED():
 
     def __init__(self, gpio):
@@ -128,7 +128,7 @@ class LED():
     def off(self):
         #print("--- turn off " + str(self.pin))
         pass
-'''
+
 
 def pollInput():
     global buttonPushed
@@ -529,7 +529,7 @@ def setupArduinos():
 def checkArduions():
     # ask arduionos if they are ready
     # TODO
-    if False: #bTestMode:
+    if True: #bTestMode:
         return True
     else:
         #TODO
@@ -558,8 +558,8 @@ def onAttractModeStep():
             attractStep = 0
 
             # for testing without a center button
-            #newGame()
-            #bWaitForState = True
+            newGame()
+            bWaitForState = True
 
         attractThread = Timer(attractDur, onAttractModeStep, [])
         flashColor(attractSequence[attractStep], attractDur, False)

@@ -529,7 +529,7 @@ def setupArduinos():
 def checkArduions():
     # ask arduionos if they are ready
     # TODO
-    if False: #bTestMode:
+    if True: #bTestMode:
         return True
     else:
         #TODO
@@ -558,8 +558,8 @@ def onAttractModeStep():
             attractStep = 0
 
             # for testing without a center button
-            #newGame()
-            #bWaitForState = True
+            newGame()
+            bWaitForState = True
 
         attractThread = Timer(attractDur, onAttractModeStep, [])
         flashColor(attractSequence[attractStep], attractDur, False)
