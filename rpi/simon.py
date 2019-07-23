@@ -484,6 +484,7 @@ def checkArduions():
     else:
         #TODO
         try:
+            LOG("about to try arduino")
             sendCommandToAll(CMD_ZERO, [], True)
             buttons = i2cbus.read_i2c_block_data(ardAddr, 1)
             LOG(buttons)
@@ -620,7 +621,7 @@ def makePlayersChoice():
     if bTestMode:
         # set button pushed to last color
         if curStep < len(curSequence):
-            if len(curSequence) > 0:
+            if len(curSequence) > 14:
                 buttonPushed = -1   # end the game
             else:
                 LOG("Sequence Length " + str(len(curSequence)))
