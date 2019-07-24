@@ -19,7 +19,7 @@ sudo apt install python3-gpiozero
 sudo pip3 install DMXEnttecPro
 '''
 
-bTestMode = True
+bTestMode = False
 
 SIMON_CENTER = 0
 SIMON_NONE   = 0
@@ -529,7 +529,7 @@ def setupArduinos():
 def checkArduions():
     # ask arduionos if they are ready
     # TODO
-    if False: #bTestMode:
+    if bTestMode:
         return True
     else:
         #TODO
@@ -542,7 +542,7 @@ def checkArduions():
         except:
             return False
 
-attractSequence = [SIMON_WHITE, SIMON_RED, SIMON_GREEN, SIMON_BLUE, SIMON_YELLOW]
+attractSequence = [SIMON_WHITE, SIMON_RED, SIMON_BLUE, SIMON_YELLOW, SIMON_GREEN]
 #attractSequence = [SIMON_RED, SIMON_GREEN, SIMON_BLUE, SIMON_YELLOW]
 attractDur = 1.0
 
