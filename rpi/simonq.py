@@ -400,18 +400,10 @@ def setPowerLight(bOn):
         PowerLight.off()
 
 
-def colorOff(color):
-    LOG("colorOff : " + str(color))
-    if color != SIMON_WHITE:
-        ButtonLight[color].off()
-        SpotLights[color].off()
-        DMXLightOff(color)
-    CenterLights[color][0].off()
-    CenterLights[color][1].off()
-    CenterLights[color][2].off()
-
 def colorOn(color):
-    LOG("colorOn : " + str(color))
+    #LOG("colorOn : " + str(color))
+    if color == SIMON_ERROR:
+        color = SIMON_RED
     if color != SIMON_WHITE:
         ButtonLight[color].on()
         SpotLights[color].on()
@@ -420,14 +412,25 @@ def colorOn(color):
     CenterLights[color][1].on()
     CenterLights[color][2].on()
 
-def centerWhiteOff(idx):
-    #LOG("centerWhiteOff : " + str(idx))
-    CenterLights[SIMON_CENTER][idx].off()
+def colorOff(color):
+    if color == SIMON_ERROR:
+        color = SIMON_RED
+    #LOG("colorOff : " + str(color))
+    if color != SIMON_WHITE:
+        ButtonLight[color].off()
+        SpotLights[color].off()
+        DMXLightOff(color)
+    CenterLights[color][0].off()
+    CenterLights[color][1].off()
+    CenterLights[color][2].off()
 
 def centerWhiteOn(idx):
     #LOG("centerWhiteOn : " + str(idx))
     CenterLights[SIMON_CENTER][idx].on()
 
+def centerWhiteOff(idx):
+    #LOG("centerWhiteOff : " + str(idx))
+    CenterLights[SIMON_CENTER][idx].off()
 
 
 print("hello")
@@ -502,6 +505,7 @@ def showNextColor(ts, dur):
     global bGameOver
     global bWaitForState
     l = len(curSequence)
+    #LOG("showNextColor step " + str(curStep))
     if curStep == len(curSequence):
         if bGameOver:
             AddCmd(ts + 1.0, CMD_GOTO_STATE, STATE_ATTRACT)
@@ -512,7 +516,7 @@ def showNextColor(ts, dur):
             print("reset curstep to zero")
             AddCmd(ts + 1.0, CMD_GOTO_STATE, STATE_START_TIMER)
     else:
-        AddCmd(ts + dur, CMD_SHOW_NEXT_COLOR, dur)
+        AddCmd(ts + dur + 0.05, CMD_SHOW_NEXT_COLOR, dur)
         flashColor(ts, curSequence[curStep], dur, True)
         curStep = curStep + 1
 
@@ -521,7 +525,7 @@ def showSequence(ts):
     global curSequence
     global curStep
     global bGameOver
-    LOG("+++ ShowSequence " + str(curSequence))
+    LOG("+++ ShowSequence len=" + str(len(curSequence)) + " " + str(curSequence))
     l = len(curSequence)
     if bGameOver:
         dur = 0.5
@@ -536,6 +540,89 @@ def showSequence(ts):
     showNextColor(ts, dur)
 
 
+
+def startPlayerTimer(ts):
+    global curSequence
+    LOG("startPlayerTimer")
+    timerClick = 1.0
+    if len(curSequence) > 12:
+        timerClick = 0.25
+    elif len(curSequence) > 6:
+        timerClick = 0.5
+
+    AddCmd(ts + timerClick, CMD_CENTERWHITE_OFF, 2)
+    AddCmd(ts + 2*timerClick, CMD_CENTERWHITE_OFF, 1)
+    AddCmd(ts + 3*timerClick, CMD_CENTERWHITE_OFF, 0)
+    AddCmd(ts + 3*timerClick, CMD_GOTO_STATE, STATE_PLAYER)
+    for i in range(0,3):
+        centerWhiteOn(i)
+        
+
+
+def makePlayersChoice():
+    # TODO
+    global buttonPushed
+    ReadButtons()
+    if bTestMode:
+        # set button pushed to last color
+        if curStep < len(curSequence):
+            if len(curSequence) > 15:
+                buttonPushed = -1   # end the game
+            else:
+                LOG("Sequence Length " + str(len(curSequence)))
+                buttonPushed = curSequence[curStep]
+    LOG("Player pushed: " + str(buttonPushed))
+
+
+# check to see if the player got it right
+def evaluateChoice(ts):
+    global buttonPushed
+    global curSequence
+    global curStep
+    global retry
+    LOG("+++ evaluateChoice for curstep " + str(curStep) + ", seq = " + str(curSequence))
+    bOk = True
+    if curStep >= len(curSequence):
+        # huh, this is an error, shouldn't get here
+        LOG("ERROR: evaluating choice beyond the curSequence")
+        gotoState(STATE_ATTRACT)    
+        return
+    
+    LOG("Evaluating:  pushed = " + str(buttonPushed) + ", expected = " + str(curSequence[curStep])+ ", retries = " + str(retry))
+    bOk = buttonPushed == curSequence[curStep]
+    curStep = curStep + 1
+    if bOk:
+        nextState = STATE_COMPUTER
+        if curStep < len(curSequence):
+            # player is right so far, show the color and go to the next one
+            nextState = STATE_START_TIMER
+            delay = 1.5
+        else:
+            # player got it right, add another color
+            nextState = STATE_COMPUTER
+            delay = 2.5
+
+        AddCmd(ts+delay, CMD_GOTO_STATE, nextState)
+        flashColor(ts, buttonPushed, 0.5, True)
+    else:
+        # failed!!!!
+        AddCmd(ts+2.5, CMD_GOTO_STATE, STATE_GAMEOVER)
+        showError(ts)
+
+    # reset button selection    
+    buttonPushed = -1
+
+
+
+def showError(ts):
+    LOG("Showerror!!!  Game Over")
+    AddCmd(ts + 0.2, CMD_FLASH_COLOR, [SIMON_ERROR, 0.5, True])
+    AddCmd(ts + 0.8, CMD_FLASH_COLOR, [SIMON_ERROR, 0.5, True])
+    AddCmd(ts + 1.4, CMD_FLASH_COLOR, [SIMON_ERROR, 0.5, True])
+
+
+
+
 #################################################################
 # our queue and queue functions, definitions, etc
 #
@@ -547,7 +634,7 @@ nextCmd = None
 def AddCmd(cmdAt, cmd, data):
     global nextCmd
     global cmdq
-    LOG("added command " + str(cmd))
+    #LOG("added command " + str(cmd) + " " + str(data) + " at " + str(cmdAt))
     if nextCmd == None:
         nextCmd = {'ts': cmdAt, 'cmd' : cmd, 'data' : data}
     elif cmdAt < nextCmd['ts']:
@@ -578,6 +665,9 @@ CMD_LIGHT_OFF = 3
 CMD_PLAY_SOUND = 4
 CMD_ATTRACT_STEP = 5
 CMD_SHOW_NEXT_COLOR = 6
+CMD_CENTERWHITE_ON = 7
+CMD_CENTERWHITE_OFF = 8
+CMD_FLASH_COLOR = 9
 
 def DoGotoState(ts, newState):
     global gameState
@@ -605,7 +695,7 @@ def DoShowNextColor(ts, data):
     showNextColor(ts, data)
 
 def HandleCommand(cmd):
-    LOG("HandleCommand " + str(cmd['cmd']))
+    #LOG("HandleCommand " + str(cmd['cmd']))
     if cmd['cmd'] == CMD_GOTO_STATE:
         DoGotoState(cmd['ts'], cmd['data'])
     elif cmd['cmd'] == CMD_LIGHT_ON:
@@ -618,7 +708,13 @@ def HandleCommand(cmd):
         DoAttractModeStep(cmd['ts']) 
     elif cmd['cmd'] == CMD_SHOW_NEXT_COLOR:
         DoShowNextColor(cmd['ts'], cmd['data'])
-       
+    elif cmd['cmd'] == CMD_CENTERWHITE_ON:
+        centerWhiteOn(cmd['data'])
+    elif cmd['cmd'] == CMD_CENTERWHITE_OFF:
+        centerWhiteOff(cmd['data'])
+    elif cmd['cmd'] == CMD_FLASH_COLOR:
+        flashColor(cmd['ts'], cmd['data'][0],cmd['data'][1],cmd['data'][2]  )
+
 
 
 # returns True if it handled a command       
@@ -740,46 +836,46 @@ def loop():
         showSequence(ts)
         bWaitForState = True
         
-    elif gameState == STATE_START_TIMER:
+    elif gameState == STATE_START_TIMER:  #6
         # Start the time
-        #startPlayerTimer()
-        #gotoState(STATE_TIMER)
+        startPlayerTimer(ts)
+        AddCmd(time.time(), CMD_GOTO_STATE, STATE_TIMER)
         pass
 
-    elif gameState == STATE_TIMER:
+    elif gameState == STATE_TIMER:   #7
         # waiting for the time to run down
         #readButtons()
         #retry = 0
         pass
 
-    elif gameState == STATE_PLAYER:
-        #if makePlayersChoice() or retry > 5:
-        #    gotoState(STATE_EVALUATE)
-        #else:
-        #    retry = retry + 1
-        pass
+    elif gameState == STATE_PLAYER:  #8
+        makePlayersChoice()
+        AddCmd(time.time(), CMD_GOTO_STATE, STATE_EVALUATE)
+        bWaitForState = True
 
-    elif gameState == STATE_EVALUATE:
+
+    elif gameState == STATE_EVALUATE:  #9
         # checking to see if the player got it right
-        #evaluateChoice()
-        #bWaitForState = True
+        evaluateChoice(ts)
+        bWaitForState = True
         pass
 
-    elif gameState == STATE_GAMEOVER:
+    elif gameState == STATE_GAMEOVER:  #10
         # showing the game over sequence, then returning to Attract
-        #bGameOver = True
-        #gotoState(STATE_REPLAY)
+        bGameOver = True
+        AddCmd(time.time(), CMD_GOTO_STATE, STATE_REPLAY)
+        bWaitForState = True
         pass
 
-    elif gameState == STATE_REPLAY:
-        #showSequence()
-        #bWaitForState = True
+    elif gameState == STATE_REPLAY:  #11
+        showSequence(ts)
+        bWaitForState = True
         pass
 
-    elif gameState == STATE_TEST:
+    elif gameState == STATE_TEST:  #12 
         pass
     
-    elif gameState == STATE_CHECK_BUTTONS:
+    elif gameState == STATE_CHECK_BUTTONS:  #13
         pass
 
 
