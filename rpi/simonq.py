@@ -69,11 +69,10 @@ def LOG(msg):
     print(msg)
 
 
-# PI
-#import smbus
-#from gpiozero import LED
-#i2cbus = smbus.SMBus(1)
-#ardAddr = 0x03
+import smbus
+from gpiozero import LED
+i2cbus = smbus.SMBus(1)
+ardAddr = 0x03
 
 
 try:
@@ -163,7 +162,7 @@ def setupSounds():
     global sounds
     global audioch1
 
-    pygame.mixer.init()
+    pygame.mixer.init(channels=5)
     audioch1 = pygame.mixer.Channel(1)
 
     sounds[SIMON_RED][0] = pygame.mixer.Sound("audio/red_500.wav")
@@ -451,7 +450,7 @@ def checkArduions():
         try:
             LOG("about to try arduino")
             sendCommandToAll(CMD_ZERO, [], True)
-            buttons = i2cbus.read_i2c_block_data(ardAddr, 1)
+            #buttons = i2cbus.read_i2c_block_data(ardAddr, 1)
             LOG(buttons)
             return buttons != None and len(buttons) > 5
         except:
@@ -459,6 +458,13 @@ def checkArduions():
 
 
 def ReadButtons():
+    global buttonPushed
+    if bTestMode == False: 
+        try:
+            buttons = i2cbus.read_i2c_block_data(ardAddr, 1)
+            LOG(buttons)
+        except:
+            LOG("exception")
     pass
 
 
@@ -790,6 +796,7 @@ def loop():
     #LOG("Loop: " + str(gameState))
     ts = time.time()
 
+    ReadButtons()
     bPeek = True
     while bPeek:
         bPeek = PeekCmd(ts)
