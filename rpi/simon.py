@@ -17,7 +17,7 @@ sudo apt install python3-gpiozero
 sudo pip3 install DMXEnttecPro
 '''
 
-bTestMode = True
+bTestMode = False
 
 SIMON_CENTER = 0
 SIMON_NONE   = 0
@@ -91,7 +91,7 @@ CenterLights = [[None, None, None], [None, None, None], [None, None, None], [Non
 ############################################
 #test code for not on Pi
 # PI
-
+'''
 class LED():
 
     def __init__(self, gpio):
@@ -105,7 +105,7 @@ class LED():
         #print("--- turn off " + str(self.pin))
         pass
 
-
+'''
 ##
 ##############################################
 
@@ -212,6 +212,7 @@ def playSound(color, dur):
 #   green = DMX_xxx + 2
 #   blue = DMX_xxx + 3
 
+'''
 # 3-channel mode (e.g. all = d001, red = d004, green = d007, blue = d010, yellow = d013 )
 # in this mode, channel 1 is read, 
 dmx7Chan = False
@@ -220,6 +221,7 @@ DMX_RED = 3     # set fixture to d004
 DMX_GREEN = 6   # set fixture to d007
 DMX_BLUE = 9    # set fixture to d010
 DMX_YELLOW = 12 # set fixture to d013
+'''
 
 # 7 - channel Mode (e.g. all= a001, red = a008, green = a015, blue = a022, yellow = a029)
 # in this mode, channel 0 is intensity, so we set the aXXX value and the channel below to be the same for each fixture, as intensity is Start + 0
@@ -236,7 +238,6 @@ DMX_YELLOW = 29     # set fixture to a029
 def DMXLightOn(color):
     if dmx == None:
         return
-
 
     if color == SIMON_RED:
         if dmx7Chan:
@@ -441,33 +442,44 @@ setupSounds()
 # Arduino code
 #
 
-def checkArduions():
+def checkArduinios():
     # ask arduionos if they are ready
     if bTestMode:
         LOG("checkArduinos, test = true")
         return True
     else:
         try:
-            LOG("about to try arduino")
-            sendCommandToAll(CMD_ZERO, [], True)
-            #buttons = i2cbus.read_i2c_block_data(ardAddr, 1)
-            LOG(buttons)
-            return buttons != None and len(buttons) > 5
+            #LOG("about to try arduino")
+            #sendCommandToAll(CMD_ZERO, [], True)
+            buttons = i2cbus.read_i2c_block_data(ardAddr, 1)
+            #LOG(buttons)
+            return buttons != None and len(buttons) > 4
         except:
+            LOG("Error checking arduinos")
             return False
 
+buttons = []
 
 def ReadButtons():
-    global buttonPushed
+    global buttons
     if bTestMode == False: 
         try:
             buttons = i2cbus.read_i2c_block_data(ardAddr, 1)
             LOG(buttons)
         except:
-            LOG("exception")
+            LOG("exception reading buttons")
     pass
 
 
+def evalButtons():
+    global buttonPushed
+    global buttons
+    if buttons != None and len(buttons) > SIMON_LAST:
+        maxWeight = 0      # filter out low weights
+        for i in range(SIMON_CENTER, SIMON_LAST+1):
+            if buttons[i] > maxWeight:
+                maxWeight = buttons[i]
+                buttonPushed = i
 
 
 def newGame(ts):
@@ -559,7 +571,7 @@ def startPlayerTimer(ts):
     AddCmd(ts + timerClick, CMD_CENTERWHITE_OFF, 2)
     AddCmd(ts + 2*timerClick, CMD_CENTERWHITE_OFF, 1)
     AddCmd(ts + 3*timerClick, CMD_CENTERWHITE_OFF, 0)
-    AddCmd(ts + 3*timerClick, CMD_GOTO_STATE, STATE_PLAYER)
+    AddCmd(ts + 3*timerClick + 0.5, CMD_GOTO_STATE, STATE_PLAYER)
     for i in range(0,3):
         centerWhiteOn(i)
         
@@ -577,6 +589,8 @@ def makePlayersChoice():
             else:
                 LOG("Sequence Length " + str(len(curSequence)))
                 buttonPushed = curSequence[curStep]
+    else:
+        evalButtons()
     LOG("Player pushed: " + str(buttonPushed))
 
 
@@ -682,6 +696,7 @@ def DoGotoState(ts, newState):
     LOG("gamestate chainging from " + str(gameState) + " to " + str(newState))
     gameState = newState
     if newState == STATE_ATTRACT:
+        LOG("start attract mode")
         startAttractMode(ts)
 
     bWaitForState = False
@@ -814,7 +829,7 @@ def loop():
     elif gameState == STATE_WAIT:   # 1
         bArduinosReady = False
         while bArduinosReady == False:
-            bArduinosReady = checkArduions()
+            bArduinosReady = checkArduinios()
 
         PowerLight.on()
         AddCmd(time.time(), CMD_GOTO_STATE, STATE_ATTRACT)
@@ -822,12 +837,13 @@ def loop():
 
     elif gameState == STATE_ATTRACT:    # 2
         #readButtons()
-        #if buttonPushed == SIMON_CENTER:
-        #    # we can start
-        #    LOG("button pushed :: start game")
-        #    sendCommand(SIMON_CENTER, CMD_COMPUTER, {})
-        #    newGame()
-        #    bWaitForState = True
+        evalButtons()
+        if buttonPushed == SIMON_CENTER:
+            # we can start
+            LOG("button pushed :: start game")
+            #sendCommand(SIMON_CENTER, CMD_COMPUTER, {})
+            newGame(ts)
+            bWaitForState = True
         pass
 
     elif gameState == STATE_BEGIN: #3
