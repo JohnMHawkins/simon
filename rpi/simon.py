@@ -801,6 +801,8 @@ def startAttractMode(ts):
 
 
 
+lastRead = 0
+MINREADDELTA = 0.05
 
 def loop():
     global gameState
@@ -808,10 +810,13 @@ def loop():
     global bGameOver
     global PowerLight
     global retry
+    global lastRead
     #LOG("Loop: " + str(gameState))
     ts = time.time()
+    if ts - lastRead > MINREADDELTA:
+        ReadButtons()
+        lastRead = ts
 
-    ReadButtons()
     bPeek = True
     while bPeek:
         bPeek = PeekCmd(ts)
