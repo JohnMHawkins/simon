@@ -17,7 +17,7 @@ sudo apt install python3-gpiozero
 sudo pip3 install DMXEnttecPro
 '''
 
-bTestMode = True
+bTestMode = False
 
 SIMON_CENTER = 0
 SIMON_NONE   = 0
@@ -212,6 +212,7 @@ def playSound(color, dur):
 #   green = DMX_xxx + 2
 #   blue = DMX_xxx + 3
 
+'''
 # 3-channel mode (e.g. all = d001, red = d004, green = d007, blue = d010, yellow = d013 )
 # in this mode, channel 1 is read, 
 dmx7Chan = False
@@ -220,6 +221,7 @@ DMX_RED = 3     # set fixture to d004
 DMX_GREEN = 6   # set fixture to d007
 DMX_BLUE = 9    # set fixture to d010
 DMX_YELLOW = 12 # set fixture to d013
+'''
 
 # 7 - channel Mode (e.g. all= a001, red = a008, green = a015, blue = a022, yellow = a029)
 # in this mode, channel 0 is intensity, so we set the aXXX value and the channel below to be the same for each fixture, as intensity is Start + 0
@@ -232,10 +234,10 @@ DMX_GREEN = 15      # set fixture to a015
 DMX_BLUE = 22       # set fixture to a022
 DMX_YELLOW = 29     # set fixture to a029
 
+
 def DMXLightOn(color):
     if dmx == None:
         return
-
 
     if color == SIMON_RED:
         if dmx7Chan:
@@ -400,6 +402,8 @@ def setPowerLight(bOn):
 
 def colorOn(color):
     #LOG("colorOn : " + str(color))
+    if color == -1:
+        return
     if color == SIMON_ERROR:
         color = SIMON_RED
     if color != SIMON_WHITE:
@@ -411,9 +415,11 @@ def colorOn(color):
     CenterLights[color][2].on()
 
 def colorOff(color):
+    #LOG("colorOff : " + str(color))
+    if color == -1:
+        return
     if color == SIMON_ERROR:
         color = SIMON_RED
-    #LOG("colorOff : " + str(color))
     if color != SIMON_WHITE:
         ButtonLight[color].off()
         SpotLights[color].off()
@@ -423,63 +429,88 @@ def colorOff(color):
     CenterLights[color][2].off()
 
 def centerWhiteOn(idx):
-    LOG("centerWhiteOn : " + str(idx))
+    #LOG("centerWhiteOn : " + str(idx))
     CenterLights[SIMON_CENTER][idx].on()
 
 def centerWhiteOff(idx):
-    LOG("centerWhiteOff : " + str(idx))
+    #LOG("centerWhiteOff : " + str(idx))
     CenterLights[SIMON_CENTER][idx].off()
 
 
 print("hello")
 setupLights()
 setupSounds()
-allLightsOff()
 
 
 ##################################################################3
 # Arduino code
 #
 
-def checkArduions():
+def checkArduinios():
     # ask arduionos if they are ready
     if bTestMode:
         LOG("checkArduinos, test = true")
         return True
     else:
         try:
-            LOG("about to try arduino")
+            #LOG("about to try arduino")
             #sendCommandToAll(CMD_ZERO, [], True)
             buttons = i2cbus.read_i2c_block_data(ardAddr, 1)
-            LOG(buttons)
-            return buttons != None and len(buttons) > 5
+            #LOG(buttons)
+            return buttons != None and len(buttons) > 4
         except:
+            LOG("Error checking arduinos")
             return False
+
+buttons = []
+numreadfails = 0
+
+def sendCommand(buttonId, cmd, data):
+    # to send a command to the arduino:
+    i2cbus.write_byte_data(ardAddr, 0, cmd)
 
 
 def ReadButtons():
-    global buttonPushed
+    global buttons
+    global numreadfails
     if bTestMode == False: 
         try:
             buttons = i2cbus.read_i2c_block_data(ardAddr, 1)
-            #LOG(buttons)
+            LOG(buttons[:5])
         except:
-            LOG("exception")
+            numreadfails = numreadfails + 1
+            LOG("=======================================")
+            LOG("   ")
+            LOG("exception reading buttons " + str(numreadfails))
+            LOG("   ")
+            LOG("=======================================")
     pass
 
 
-
+def evalButtons():
+    global buttonPushed
+    global buttons
+    if buttons != None and len(buttons) > SIMON_LAST:
+        maxWeight = 5      # filter out low weights
+        for i in range(SIMON_CENTER, SIMON_LAST+1):
+            if buttons[i] > maxWeight:
+                maxWeight = buttons[i]
+                buttonPushed = i
+        if maxWeight == 5:
+            buttonPushed = -1
 
 def newGame(ts):
     global curSequence
     global curStep
     global bGameOver
+    global numreadfails
     # Turn off all the lights, reset the sequence, then wait one second and start
     #sendCommandToAll(CMD_ZERO, [], True)
-    AddCmd(ts + 1.0, CMD_GOTO_STATE, STATE_COMPUTER)
+    AddCmd(ts + 1.5, CMD_GOTO_STATE, STATE_COMPUTER)
     allLightsOff()
     curSequence = []
     curStep = 0
+    numreadfails = 0
     bGameOver = False
     
 
@@ -497,6 +528,17 @@ def addNewColor(ts):
             newcolor = newcolor + adj
             if newcolor > SIMON_YELLOW:
                 newcolor = newcolor - 4
+
+    
+    newcolor = SIMON_BLUE
+    if l > 0:
+        if curSequence[l-1] == SIMON_BLUE:
+            newcolor = SIMON_GREEN
+        elif curSequence[l-1] == SIMON_GREEN:
+            newcolor = SIMON_RED
+        elif curSequence[l-1] == SIMON_RED:
+            newcolor = SIMON_YELLOW
+    
 
     curSequence.append(newcolor)
     LOG(curSequence)
@@ -559,15 +601,16 @@ def startPlayerTimer(ts):
     AddCmd(ts + timerClick, CMD_CENTERWHITE_OFF, 2)
     AddCmd(ts + 2*timerClick, CMD_CENTERWHITE_OFF, 1)
     AddCmd(ts + 3*timerClick, CMD_CENTERWHITE_OFF, 0)
-    AddCmd(ts + 3*timerClick, CMD_GOTO_STATE, STATE_PLAYER)
+    AddCmd(ts + 3*timerClick + 1.0, CMD_GOTO_STATE, STATE_PLAYER)
     for i in range(0,3):
         centerWhiteOn(i)
         
 
 
 def makePlayersChoice():
-    # TODO
+    global numreadfails
     global buttonPushed
+
     ReadButtons()
     if bTestMode:
         # set button pushed to last color
@@ -577,7 +620,10 @@ def makePlayersChoice():
             else:
                 LOG("Sequence Length " + str(len(curSequence)))
                 buttonPushed = curSequence[curStep]
-    LOG("Player pushed: " + str(buttonPushed))
+    else:
+        evalButtons()
+    LOG("Player pushed: " + str(buttonPushed) + ", readfails = " + str(numreadfails))
+    numreadfails = 0
 
 
 # check to see if the player got it right
@@ -622,6 +668,7 @@ def evaluateChoice(ts):
 
 def showError(ts):
     LOG("Showerror!!!  Game Over")
+    LOG("total numreadfails = " + str(numreadfails))
     AddCmd(ts + 0.2, CMD_FLASH_COLOR, [SIMON_ERROR, 0.5, True])
     AddCmd(ts + 0.8, CMD_FLASH_COLOR, [SIMON_ERROR, 0.5, True])
     AddCmd(ts + 1.4, CMD_FLASH_COLOR, [SIMON_ERROR, 0.5, True])
@@ -682,6 +729,7 @@ def DoGotoState(ts, newState):
     LOG("gamestate chainging from " + str(gameState) + " to " + str(newState))
     gameState = newState
     if newState == STATE_ATTRACT:
+        LOG("start attract mode")
         startAttractMode(ts)
 
     bWaitForState = False
@@ -786,6 +834,10 @@ def startAttractMode(ts):
 
 
 
+lastRead = 0
+MINREADDELTA = 0.05
+
+curButton = -1
 
 def loop():
     global gameState
@@ -793,102 +845,31 @@ def loop():
     global bGameOver
     global PowerLight
     global retry
+    global lastRead
+    global curButton
+
+
+    
+
     #LOG("Loop: " + str(gameState))
     ts = time.time()
+    if ts - lastRead > MINREADDELTA:
+        ReadButtons()
+        evalButtons()
+        lastRead = ts
 
-    ReadButtons()
-    bPeek = True
-    while bPeek:
-        bPeek = PeekCmd(ts)
-
-    if bWaitForState:
-        return
-
-    if gameState == STATE_INIT:     # 0
-        #setupArduinos()
-        AddCmd(ts + 0.1, CMD_GOTO_STATE, STATE_WAIT)
-        bWaitForState = True
-        #gotoState(STATE_WAIT)
-        pass
-
-    elif gameState == STATE_WAIT:   # 1
-        bArduinosReady = False
-        while bArduinosReady == False:
-            bArduinosReady = checkArduions()
-
-        PowerLight.on()
-        AddCmd(time.time(), CMD_GOTO_STATE, STATE_ATTRACT)
-        pass
-
-    elif gameState == STATE_ATTRACT:    # 2
-        #readButtons()
-        #if buttonPushed == SIMON_CENTER:
-        #    # we can start
-        #    LOG("button pushed :: start game")
-        #    sendCommand(SIMON_CENTER, CMD_COMPUTER, {})
-        #    newGame()
-        #    bWaitForState = True
-        pass
-
-    elif gameState == STATE_BEGIN: #3
-        pass
-
-    elif gameState == STATE_COMPUTER:  #4
-        addNewColor(ts)
-        
-        
-    elif gameState == STATE_SHOW:   #5
-        LOG("State show")
-        # be patient while simon is showing the player the sequence
-        showSequence(ts)
-        bWaitForState = True
-        
-    elif gameState == STATE_START_TIMER:  #6
-        # Start the time
-        startPlayerTimer(ts)
-        AddCmd(time.time(), CMD_GOTO_STATE, STATE_TIMER)
-        pass
-
-    elif gameState == STATE_TIMER:   #7
-        # waiting for the time to run down
-        #readButtons()
-        #retry = 0
-        pass
-
-    elif gameState == STATE_PLAYER:  #8
-        makePlayersChoice()
-        AddCmd(time.time(), CMD_GOTO_STATE, STATE_EVALUATE)
-        bWaitForState = True
-
-
-    elif gameState == STATE_EVALUATE:  #9
-        # checking to see if the player got it right
-        evaluateChoice(ts)
-        bWaitForState = True
-        pass
-
-    elif gameState == STATE_GAMEOVER:  #10
-        # showing the game over sequence, then returning to Attract
-        bGameOver = True
-        AddCmd(time.time(), CMD_GOTO_STATE, STATE_REPLAY)
-        bWaitForState = True
-        pass
-
-    elif gameState == STATE_REPLAY:  #11
-        showSequence(ts)
-        bWaitForState = True
-        pass
-
-    elif gameState == STATE_TEST:  #12 
-        pass
-    
-    elif gameState == STATE_CHECK_BUTTONS:  #13
-        pass
+    if buttonPushed != curButton:
+        LOG("change from " + str(curButton) + " to " + str(buttonPushed))
+        colorOff(curButton)
+        curButton = buttonPushed
+        colorOn(curButton)
 
 
 def main(argv):
     global bTestMode
 
+    sendCommand(SIMON_CENTER, 2, {})
+            
     try:
         bGo = True
         while bGo:

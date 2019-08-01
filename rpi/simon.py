@@ -459,15 +459,27 @@ def checkArduinios():
             return False
 
 buttons = []
+numreadfails = 0
+
+def sendCommand(buttonId, cmd, data):
+    # to send a command to the arduino:
+    i2cbus.write_byte_data(ardAddr, 0, cmd)
+
 
 def ReadButtons():
     global buttons
+    global numreadfails
     if bTestMode == False: 
         try:
             buttons = i2cbus.read_i2c_block_data(ardAddr, 1)
-            LOG(buttons)
+            LOG(buttons[:5])
         except:
-            LOG("exception reading buttons")
+            numreadfails = numreadfails + 1
+            LOG("=======================================")
+            LOG("   ")
+            LOG("exception reading buttons " + str(numreadfails))
+            LOG("   ")
+            LOG("=======================================")
     pass
 
 
@@ -486,12 +498,14 @@ def newGame(ts):
     global curSequence
     global curStep
     global bGameOver
+    global numreadfails
     # Turn off all the lights, reset the sequence, then wait one second and start
     #sendCommandToAll(CMD_ZERO, [], True)
-    AddCmd(ts + 1.0, CMD_GOTO_STATE, STATE_COMPUTER)
+    AddCmd(ts + 1.5, CMD_GOTO_STATE, STATE_COMPUTER)
     allLightsOff()
     curSequence = []
     curStep = 0
+    numreadfails = 0
     bGameOver = False
     
 
@@ -509,6 +523,17 @@ def addNewColor(ts):
             newcolor = newcolor + adj
             if newcolor > SIMON_YELLOW:
                 newcolor = newcolor - 4
+
+    '''
+    newcolor = SIMON_BLUE
+    if l > 0:
+        if curSequence[l-1] == SIMON_BLUE:
+            newcolor = SIMON_GREEN
+        elif curSequence[l-1] == SIMON_GREEN:
+            newcolor = SIMON_RED
+        elif curSequence[l-1] == SIMON_RED:
+            newcolor = SIMON_YELLOW
+    '''
 
     curSequence.append(newcolor)
     LOG(curSequence)
@@ -571,15 +596,16 @@ def startPlayerTimer(ts):
     AddCmd(ts + timerClick, CMD_CENTERWHITE_OFF, 2)
     AddCmd(ts + 2*timerClick, CMD_CENTERWHITE_OFF, 1)
     AddCmd(ts + 3*timerClick, CMD_CENTERWHITE_OFF, 0)
-    AddCmd(ts + 3*timerClick + 0.5, CMD_GOTO_STATE, STATE_PLAYER)
+    AddCmd(ts + 3*timerClick + 0.25, CMD_GOTO_STATE, STATE_PLAYER)
     for i in range(0,3):
         centerWhiteOn(i)
         
 
 
 def makePlayersChoice():
-    # TODO
+    global numreadfails
     global buttonPushed
+
     ReadButtons()
     if bTestMode:
         # set button pushed to last color
@@ -591,7 +617,8 @@ def makePlayersChoice():
                 buttonPushed = curSequence[curStep]
     else:
         evalButtons()
-    LOG("Player pushed: " + str(buttonPushed))
+    LOG("Player pushed: " + str(buttonPushed) + ", readfails = " + str(numreadfails))
+    numreadfails = 0
 
 
 # check to see if the player got it right
@@ -636,6 +663,7 @@ def evaluateChoice(ts):
 
 def showError(ts):
     LOG("Showerror!!!  Game Over")
+    LOG("total numreadfails = " + str(numreadfails))
     AddCmd(ts + 0.2, CMD_FLASH_COLOR, [SIMON_ERROR, 0.5, True])
     AddCmd(ts + 0.8, CMD_FLASH_COLOR, [SIMON_ERROR, 0.5, True])
     AddCmd(ts + 1.4, CMD_FLASH_COLOR, [SIMON_ERROR, 0.5, True])
@@ -846,7 +874,7 @@ def loop():
         if buttonPushed == SIMON_CENTER:
             # we can start
             LOG("button pushed :: start game")
-            #sendCommand(SIMON_CENTER, CMD_COMPUTER, {})
+            sendCommand(SIMON_CENTER, 2, {})
             newGame(ts)
             bWaitForState = True
         pass
@@ -872,11 +900,12 @@ def loop():
 
     elif gameState == STATE_TIMER:   #7
         # waiting for the time to run down
-        #readButtons()
+        #ReadButtons()
         #retry = 0
         pass
 
     elif gameState == STATE_PLAYER:  #8
+        ReadButtons()
         makePlayersChoice()
         AddCmd(time.time(), CMD_GOTO_STATE, STATE_EVALUATE)
         bWaitForState = True
