@@ -472,7 +472,7 @@ def ReadButtons():
     if bTestMode == False: 
         try:
             buttons = i2cbus.read_i2c_block_data(ardAddr, 1)
-            LOG(buttons[:5])
+            #LOG(buttons[:5])
         except:
             numreadfails = numreadfails + 1
             LOG("=======================================")
@@ -498,15 +498,18 @@ def newGame(ts):
     global curSequence
     global curStep
     global bGameOver
-    global numreadfails
+    global gameState
     # Turn off all the lights, reset the sequence, then wait one second and start
     #sendCommandToAll(CMD_ZERO, [], True)
-    AddCmd(ts + 1.5, CMD_GOTO_STATE, STATE_COMPUTER)
+    #AddCmd(ts + 1.0, CMD_GOTO_STATE, STATE_COMPUTER)
+    LOG("Starting new game")
+    ClearCmdQ()
     allLightsOff()
     curSequence = []
     curStep = 0
-    numreadfails = 0
     bGameOver = False
+    gameState = STATE_BEGIN
+    startCountdownMode(ts)
     
 
 
@@ -706,6 +709,15 @@ def GetCmd(ts):
             nextCmd = None
     return retCmd
         
+def ClearCmdQ():
+    global nextCmd
+    global cmdq
+    nextCmd = None
+    while cmdq.empty() == False:
+        cmdAt, cmd, data = cmdq.get(False)
+        cmdq.task_done()
+
+
     
 CMD_GOTO_STATE = 1
 CMD_LIGHT_ON = 2
@@ -716,6 +728,7 @@ CMD_SHOW_NEXT_COLOR = 6
 CMD_CENTERWHITE_ON = 7
 CMD_CENTERWHITE_OFF = 8
 CMD_FLASH_COLOR = 9
+CMD_COUNTDOWN_STEP = 10
 
 def DoGotoState(ts, newState):
     global gameState
@@ -724,7 +737,6 @@ def DoGotoState(ts, newState):
     LOG("gamestate chainging from " + str(gameState) + " to " + str(newState))
     gameState = newState
     if newState == STATE_ATTRACT:
-        LOG("start attract mode")
         startAttractMode(ts)
 
     bWaitForState = False
@@ -763,6 +775,8 @@ def HandleCommand(cmd):
         centerWhiteOff(cmd['data'])
     elif cmd['cmd'] == CMD_FLASH_COLOR:
         flashColor(cmd['ts'], cmd['data'][0],cmd['data'][1],cmd['data'][2]  )
+    elif cmd['cmd'] == CMD_COUNTDOWN_STEP:
+        DoCoundownModeStep(cmd['ts'])
 
 
 
@@ -806,11 +820,14 @@ def DoAttractModeStep(ts):
         # show the next color
         if attractStep >= len(attractSequence):
             attractStep = 0
+            random.shuffle(attractSequence)
+
 
             # for testing without a center button
             if bTestMode:
                 newGame(ts)
                 bWaitForState = True
+                return
 
         AddCmd(ts + attractDur, CMD_ATTRACT_STEP, {})
         flashColor(ts, attractSequence[attractStep], attractDur, False)
@@ -828,6 +845,36 @@ def startAttractMode(ts):
     DoAttractModeStep(ts)
 
 
+countdownSequence = [SIMON_WHITE, SIMON_RED, SIMON_BLUE, SIMON_YELLOW, SIMON_GREEN]
+counddownStep = 4
+
+def DoCoundownModeStep(ts):
+    global counddownStep
+    global countdownSequence
+    LOG("onCountdownModeStep " + str(gameState))
+    if counddownStep >= len(countdownSequence):
+        for i in range(0, len(countdownSequence)):
+           colorOn(countdownSequence[i])
+        counddownStep = len(countdownSequence) -1
+    else:
+        # turn off the next color
+        colorOff(countdownSequence[counddownStep])
+        counddownStep = counddownStep - 1
+
+    if counddownStep > -1:
+        AddCmd(ts + 0.6, CMD_COUNTDOWN_STEP, {})
+    else:
+        AddCmd(ts + 0.6, CMD_GOTO_STATE, STATE_COMPUTER)
+        bWaitForState = True
+
+def startCountdownMode(ts):
+    global counddownStep
+    global countdownSequence
+    LOG("Start countdown mode")
+    counddownStep = len(countdownSequence)
+    AddCmd(ts + 0.6, CMD_COUNTDOWN_STEP, {})
+
+
 
 lastRead = 0
 MINREADDELTA = 0.05
@@ -841,8 +888,9 @@ def loop():
     global lastRead
     #LOG("Loop: " + str(gameState))
     ts = time.time()
+    bRead = False
     if ts - lastRead > MINREADDELTA:
-        ReadButtons()
+        bRead = True
         lastRead = ts
 
     bPeek = True
@@ -869,7 +917,8 @@ def loop():
         pass
 
     elif gameState == STATE_ATTRACT:    # 2
-        #readButtons()
+        if bRead:
+            ReadButtons()
         evalButtons()
         if buttonPushed == SIMON_CENTER:
             # we can start
@@ -900,7 +949,8 @@ def loop():
 
     elif gameState == STATE_TIMER:   #7
         # waiting for the time to run down
-        #ReadButtons()
+        if bRead:
+            ReadButtons()
         #retry = 0
         pass
 

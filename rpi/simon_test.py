@@ -7,6 +7,7 @@ import queue
 import random
 import time
 
+
 from DMXEnttecPro import Controller
 from DMXEnttecPro.utils import get_port_by_serial_number, get_port_by_product_id
 
@@ -399,7 +400,7 @@ def setPowerLight(bOn):
 
 
 def colorOn(color):
-    #LOG("colorOn : " + str(color))
+    LOG("colorOn : " + str(color))
     if color == SIMON_ERROR:
         color = SIMON_RED
     if color != SIMON_WHITE:
@@ -413,7 +414,7 @@ def colorOn(color):
 def colorOff(color):
     if color == SIMON_ERROR:
         color = SIMON_RED
-    #LOG("colorOff : " + str(color))
+    LOG("colorOff : " + str(color))
     if color != SIMON_WHITE:
         ButtonLight[color].off()
         SpotLights[color].off()
@@ -474,13 +475,18 @@ def newGame(ts):
     global curSequence
     global curStep
     global bGameOver
+    global gameState
     # Turn off all the lights, reset the sequence, then wait one second and start
     #sendCommandToAll(CMD_ZERO, [], True)
-    AddCmd(ts + 1.0, CMD_GOTO_STATE, STATE_COMPUTER)
+    #AddCmd(ts + 1.0, CMD_GOTO_STATE, STATE_COMPUTER)
+    LOG("Starting new game")
+    ClearCmdQ()
     allLightsOff()
     curSequence = []
     curStep = 0
     bGameOver = False
+    gameState = STATE_BEGIN
+    startCountdownMode(ts)
     
 
 
@@ -572,7 +578,7 @@ def makePlayersChoice():
     if bTestMode:
         # set button pushed to last color
         if curStep < len(curSequence):
-            if len(curSequence) > 15:
+            if len(curSequence) > 5:
                 buttonPushed = -1   # end the game
             else:
                 LOG("Sequence Length " + str(len(curSequence)))
@@ -663,8 +669,16 @@ def GetCmd(ts):
         else:
             nextCmd = None
     return retCmd
-        
-    
+
+def ClearCmdQ():
+    global nextCmd
+    global cmdq
+    nextCmd = None
+    while cmdq.empty() == False:
+        cmdAt, cmd, data = cmdq.get(False)
+        cmdq.task_done()
+
+
 CMD_GOTO_STATE = 1
 CMD_LIGHT_ON = 2
 CMD_LIGHT_OFF = 3
@@ -674,6 +688,7 @@ CMD_SHOW_NEXT_COLOR = 6
 CMD_CENTERWHITE_ON = 7
 CMD_CENTERWHITE_OFF = 8
 CMD_FLASH_COLOR = 9
+CMD_COUNTDOWN_STEP = 10
 
 def DoGotoState(ts, newState):
     global gameState
@@ -720,6 +735,8 @@ def HandleCommand(cmd):
         centerWhiteOff(cmd['data'])
     elif cmd['cmd'] == CMD_FLASH_COLOR:
         flashColor(cmd['ts'], cmd['data'][0],cmd['data'][1],cmd['data'][2]  )
+    elif cmd['cmd'] == CMD_COUNTDOWN_STEP:
+        DoCoundownModeStep(cmd['ts'])
 
 
 
@@ -763,11 +780,14 @@ def DoAttractModeStep(ts):
         # show the next color
         if attractStep >= len(attractSequence):
             attractStep = 0
+            random.shuffle(attractSequence)
+    
 
             # for testing without a center button
             if bTestMode:
                 newGame(ts)
                 bWaitForState = True
+                return
 
         AddCmd(ts + attractDur, CMD_ATTRACT_STEP, {})
         flashColor(ts, attractSequence[attractStep], attractDur, False)
@@ -784,6 +804,38 @@ def startAttractMode(ts):
     attractStep = 0
     DoAttractModeStep(ts)
 
+
+countdownSequence = [SIMON_WHITE, SIMON_RED, SIMON_BLUE, SIMON_YELLOW, SIMON_GREEN]
+counddownStep = 4
+
+def DoCoundownModeStep(ts):
+    global counddownStep
+    global countdownSequence
+    LOG("onCountdownModeStep " + str(gameState))
+    if counddownStep >= len(countdownSequence):
+        for i in range(0, len(countdownSequence)):
+           colorOn(countdownSequence[i])
+        counddownStep = len(countdownSequence) -1
+    else:
+        # turn off the next color
+        colorOff(countdownSequence[counddownStep])
+        counddownStep = counddownStep - 1
+
+    if counddownStep > -1:
+        AddCmd(ts + 1.0, CMD_COUNTDOWN_STEP, {})
+    else:
+        AddCmd(ts + 1.0, CMD_GOTO_STATE, STATE_COMPUTER)
+        bWaitForState = True
+
+    
+
+
+def startCountdownMode(ts):
+    global counddownStep
+    global countdownSequence
+    LOG("Start countdown mode")
+    counddownStep = len(countdownSequence)
+    AddCmd(ts + 1.0, CMD_COUNTDOWN_STEP, {})
 
 
 
