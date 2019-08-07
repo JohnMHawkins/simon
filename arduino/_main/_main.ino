@@ -57,7 +57,7 @@ void updateCenterButton()
 
 // new button
 
-const byte dataPins[4][4] = {{4, 5, 6, 7}, {14, 22, 24, 25}, {A0, A1, A2, A3}, {A4, A9, A10, A11}} ; //{{4, 5, 6, 7}, {14, 27, 28, 29}, {A0, A1, A2, A3}, {A8, A9, A10, A11}};
+const byte dataPins[4][4] = {{4, 5, 6, 6}, {14, 22, 24, 25}, {A0, A1, A2, A3}, {A4, A9, A10, A11}} ; //{{4, 5, 6, 7}, {14, 27, 28, 29}, {A0, A1, A2, A3}, {A8, A9, A10, A11}};
 const byte clockPins[4][4] = {{3, 3, 3, 3}, {3, 3, 3, 3}, {3, 3, 3, 3}, {3, 3, 3, 3}};
 HX711 loadCell[4][4];
 #define mWeight 160000
@@ -69,7 +69,7 @@ void setupCells() {
     for (int j = 0; j < 4; j++)
     {
       loadCell[i][j].begin(dataPins[i][j], clockPins[i][j]);
-      loadCell[i][j].tare();
+      //loadCell[i][j].tare();
     }
   }
 }
@@ -97,24 +97,24 @@ byte getCellWeight(int Button)
   for (int i = 0; i < 4; i++)
   {
     //Serial.println("getting load cell data cell: " + (String)i);
-    long w = loadCell[button][i].get_value(2);
+    long w = loadCell[button][i].get_value(1);
     if (w < 100) w = 0;
     weight += w;
-    if(button == 2 )
-    {
+    //if(button == 1 )
+    //{
     //Serial.println("Cell [" + (String)button + "][" + (String)i + "]: " + (String)w);
-    }
+    //}
   }
 
 
   
   weight /= 4;
 
-  if (weight > maxWeight[button]) weight = mWeight;
+  if (weight > mWeight) weight = mWeight;
 
   byte normalWeight = (byte)((double)weight / (mWeight) * 255);
 
-  if(button == 2)
+  //if(button == 2)
   //Serial.println(normalWeight);
   
   return normalWeight;
