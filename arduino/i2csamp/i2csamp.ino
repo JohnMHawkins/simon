@@ -1,4 +1,7 @@
 #include <Wire.h>
+#include "HX711.h"
+#include "HX711_ADC.h"
+
 
 /*
  * This tests i2c communication between the arduino and a r-pi
@@ -24,6 +27,94 @@
  * 
  */
 
+
+
+// HX711 circuit wiring
+const int LOADCELL_DOUT_PIN = 2;
+const int LOADCELL_SCK_PIN = 3;
+
+//HX711 scale;
+HX711_ADC LoadCell_1(LOADCELL_DOUT_PIN, LOADCELL_SCK_PIN); //HX711 1
+
+/*
+const byte dataPins[4][4] = {{4, 5, 6, 6}, {14, 22, 24, 25}, {A0, A1, A2, A3}, {A4, A9, A10, A11}} ; //{{4, 5, 6, 7}, {14, 27, 28, 29}, {A0, A1, A2, A3}, {A8, A9, A10, A11}};
+const byte clockPins[4][4] = {{3, 3, 3, 3}, {2, 2, 2, 2}, {3, 3, 3, 3}, {2, 2, 2, 2}};
+HX711 loadCell[4][4];
+#define mWeight 160000
+*/
+
+void setupCells() {
+
+  //scale.begin(LOADCELL_DOUT_PIN, LOADCELL_SCK_PIN);
+  LoadCell_1.start(200);
+  
+  /*
+  for (int i = 0; i < 4; i++)
+  {
+    for (int j = 0; j < 4; j++)
+    {
+      //Serial.println("test:");
+      loadCell[i][j].begin(dataPins[i][j], clockPins[i][j]);
+      //loadCell[i][j].tare();
+    }
+  }
+  */
+}
+
+void zeroCells() {
+
+  LoadCell_1.tareNoDelay();
+  //if (scale.wait_ready_timeout(1000)) {
+    //scale.tare();
+  //}
+  /*
+  for (int i = 0; i < 4; i++)
+  {
+    for (int j = 0; j < 4; j++)
+    {
+      if (loadCell[i][j].wait_ready_timeout(1000)) {
+        //Serial.print("Tare the cells");
+        //loadCell[i][j].tare();
+      }
+    }
+  }
+  */
+}
+
+
+
+byte xgetCellWeight(int Button)
+{
+  LoadCell_1.getData();
+  //scale.read();
+  return 0;
+  /*
+  int button = Button - 1;
+
+  long weight = 0;
+
+  //Serial.println("getting load cell data cell: " + (String)button);
+
+  for (int i = 0; i < 4; i++)
+  {
+    if (loadCell[button][i].wait_ready_timeout(1000)) {
+      long w = loadCell[button][i].read();
+      //long w = loadCell[button][i].get_value(1);
+      //long w = 1;
+      weight = weight + w;
+    }
+  }
+ 
+  weight /= 4;
+
+  if (weight > mWeight) weight = mWeight;
+
+  byte normalWeight = (byte)((double)weight / (mWeight) * 255);
+  return normalWeight;
+  */
+}
+
+
 // this has to match the ardAdr param in the py program
 #define SLAVE_ADDRESS 0x03
 
@@ -43,6 +134,13 @@ int state = 0;
 
 char rxChar = 0;
 
+int debugcounter = 0;
+
+byte getCellWeight(int Button) {
+  return xgetCellWeight(Button);
+  //return weights[Button];
+}
+
 
 void setup() {
   // put your setup code here, to run once:
@@ -56,14 +154,42 @@ void setup() {
   Wire.begin(SLAVE_ADDRESS);
 
   // define i2c callbacks
-  Wire.onReceive(receiveData);
+  //Wire.onReceive(receiveData);
   Wire.onRequest(sendData);
 
+  //scale.begin(LOADCELL_DOUT_PIN, LOADCELL_SCK_PIN);
+  Serial.print("called begin on HX711");
+  setupCells();
+
 }
+
+void simulateButtons() {
+  for (int k =0; k < 1; k++ ) {
+    int j = random(10000, 99999);
+    int idx = 0;
+    for (int i = 0; i < j; i++ ) {
+      if (weights[idx] >= 255) {
+        weights[idx] = 0;
+        idx = idx + 1;
+        if (idx > 4 ){
+          idx = 0;
+        }
+      } else {
+        weights[idx] = weights[idx] + 1;
+      }
+    }
+    
+  }
+}
+
+
 
 void loop() {
   // put your main code here, to run repeatedly:
   delay(100);
+  //Serial.println("Hello");
+  simulateButtons();
+  
   if (Serial.available() > 0 ){
     rxChar = Serial.read();
     //Serial.flush();
@@ -73,6 +199,8 @@ void loop() {
             weights[i] = 0;
         }
         weights[0] = 100;
+        Wire.begin(SLAVE_ADDRESS);
+        Wire.onRequest(sendData);
         break;
 
       case '1':
@@ -105,7 +233,24 @@ void loop() {
 
     }
     
+
+  
   }
+  
+
+  zeroCells();
+  for ( int k = 1; k < 5; k++) {
+    getCellWeight(k);
+  }
+  /*
+  if (scale.is_ready()) {
+    long reading = scale.read();
+    Serial.print("HX711 reading: ");
+    Serial.println(reading);
+  } else {
+    Serial.println("HX711 not found.");
+  }
+  */
 
   /*
   weights[0] = getWeight(0);
@@ -125,15 +270,18 @@ int cmd;
   }
 }
 
+byte noweights[] = {0, 0, 0, 0, 0};
+
 // send data to the Pi over the i2c bus
 void sendData() {
   //Serial.println(weights[0] );
-  Wire.write(weights, sizeof(weights));
+  Wire.write(noweights, sizeof(noweights));
   
 }
 
 void onCommand(int cmd) {
 
+  
   switch(cmd){
     case CMD_TEST:
       if (state == 0) {
@@ -147,6 +295,7 @@ void onCommand(int cmd) {
     default:
       break;    
   }
+  
 }
 
 // This method returns the weight for the specified button as a byte (0-255)
