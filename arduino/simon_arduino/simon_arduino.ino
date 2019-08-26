@@ -216,6 +216,8 @@ byte getCellWeight(int Button)
   weight = weight / 4.0;
   byte normalWeight = (byte)(255 * weight / (4.0*mWeight));
 
+  //Serial.println("Cell [" + (String)Button + "]: " + (String)weight);
+
   return normalWeight;
 
   /*
@@ -302,12 +304,13 @@ void loop() {
   weights[3] = getWeight(3);
   weights[4] = getWeight(4);
 
-  //sendData();
+  /*
   Serial.println("\n\nGetting buttons:");
   for (int i = 0; i < 5; i++)
   {
     Serial.println(weights[i]);
   }
+  */
   yield();
 }
 
