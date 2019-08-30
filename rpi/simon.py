@@ -395,6 +395,7 @@ def allLightsOff():
 
 def setPowerLight(bOn):
     if bOn:
+        return
         PowerLight.on()
     else:
         PowerLight.off()
@@ -450,7 +451,7 @@ def checkArduinios():
     else:
         try:
             #LOG("about to try arduino")
-            #sendCommandToAll(CMD_ZERO, [], True)
+            #sendCommandToAll(CMD_ZERO, [], True)   
             buttons = i2cbus.read_i2c_block_data(ardAddr, 1)
             #LOG(buttons)
             return buttons != None and len(buttons) > 4
@@ -459,19 +460,40 @@ def checkArduinios():
             return False
 
 buttons = []
+signals = [0,0,0,0,0]
+minweight = 5
+minsignals = 18
 numreadfails = 0
+expectedColor = 0
+numExpectedSignals = 0
 
 def sendCommand(buttonId, cmd, data):
     # to send a command to the arduino:
     i2cbus.write_byte_data(ardAddr, 0, cmd)
 
 
+def clearbuttons():
+    global buttons
+    global signals
+    global expectedColor
+    global numExpectedSignals
+    expectedColor = 0
+    numExpectedSignals = 0
+    for i in range(SIMON_CENTER, SIMON_LAST+1):
+        signals[i] = 0  
+
 def ReadButtons():
     global buttons
+    global signals
     global numreadfails
     if bTestMode == False: 
         try:
             buttons = i2cbus.read_i2c_block_data(ardAddr, 1)
+            for i in range (SIMON_CENTER+1, SIMON_LAST+1):
+                if buttons[i] > minweight:
+                    signals[i] = signals[i] + 1
+                else:
+                    signals[i] = 0
             #LOG(buttons[:5])
         except:
             numreadfails = numreadfails + 1
@@ -486,13 +508,27 @@ def ReadButtons():
 def evalButtons():
     global buttonPushed
     global buttons
+    global signals
+    global gameState
+    global expectedColor
+    global numExpectedSignals
     if buttons != None and len(buttons) > SIMON_LAST:
-        maxWeight = 0      # filter out low weights
-        for i in range(SIMON_CENTER, SIMON_LAST+1):
-            if buttons[i] > maxWeight:
-                maxWeight = buttons[i]
-                buttonPushed = i
-
+        #LOG(buttons[:5])
+        if gameState == STATE_ATTRACT:
+            if buttons[SIMON_CENTER] > minweight:
+                buttonPushed = SIMON_CENTER
+                LOG(buttons[:5])
+        else:
+            maxWeight = minweight      # filter out low weights
+            for i in range(SIMON_CENTER, SIMON_LAST+1):
+                if buttons[i] > maxWeight:
+                    if i == expectedColor:
+                        buttonPushed = i
+                        numExpectedSignals = numExpectedSignals + 1
+                    if signals[i] > minsignals:
+                        maxWeight = buttons[i]
+                        buttonPushed = i
+            
 
 def newGame(ts):
     global curSequence
@@ -589,12 +625,16 @@ def showSequence(ts):
 
 def startPlayerTimer(ts):
     global curSequence
+    global expectedColor
+    global numExpectedSignals
     LOG("startPlayerTimer")
     timerClick = 1.0
+    
     if len(curSequence) > 12:
-        timerClick = 0.25
-    elif len(curSequence) > 6:
         timerClick = 0.5
+    elif len(curSequence) > 6:
+        timerClick = 0.75
+    
 
     AddCmd(ts + timerClick, CMD_CENTERWHITE_OFF, 2)
     AddCmd(ts + 2*timerClick, CMD_CENTERWHITE_OFF, 1)
@@ -602,6 +642,10 @@ def startPlayerTimer(ts):
     AddCmd(ts + 3*timerClick + 0.25, CMD_GOTO_STATE, STATE_PLAYER)
     for i in range(0,3):
         centerWhiteOn(i)
+    buttonPushed = -1
+
+    expectedColor = curSequence[curStep]
+    numExpectedSignals = 0
         
 
 
@@ -656,6 +700,10 @@ def evaluateChoice(ts):
         flashColor(ts, buttonPushed, 0.5, True)
     else:
         # failed!!!!
+        LOG("FAILED ------")
+        LOG(signals)
+        LOG("numExpected = " + str(numExpectedSignals))
+        LOG("------------")
         AddCmd(ts+2.5, CMD_GOTO_STATE, STATE_GAMEOVER)
         showError(ts)
 
@@ -742,13 +790,23 @@ def DoGotoState(ts, newState):
     bWaitForState = False
 
 def DoLightOn(ts, data):
-    colorOn(data)
-    pass
-
+    if data == SIMON_ERROR:
+        colorOn(SIMON_RED)
+        colorOn(SIMON_GREEN)
+        colorOn(SIMON_BLUE)
+        colorOn(SIMON_YELLOW)
+    else:
+        colorOn(data)
+    
 def DoLightOff(ts, data):
-    colorOff(data)
-    pass
-
+    if data == SIMON_ERROR:
+        colorOff(SIMON_RED)
+        colorOff(SIMON_GREEN)
+        colorOff(SIMON_BLUE)
+        colorOff(SIMON_YELLOW)
+    else:
+        colorOff(data)
+    
 def DoPlaySound(ts, data):
     pass
 
@@ -923,7 +981,7 @@ def loop():
         if buttonPushed == SIMON_CENTER:
             # we can start
             LOG("button pushed :: start game")
-            sendCommand(SIMON_CENTER, 2, {})
+            #sendCommand(SIMON_CENTER, 2, {})
             newGame(ts)
             bWaitForState = True
         pass

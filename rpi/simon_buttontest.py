@@ -183,6 +183,9 @@ def setupSounds():
 
     sounds[SIMON_ERROR][0] = pygame.mixer.Sound("audio/error_500.wav")
 
+def audioQuit():
+    pygame.mixer.stop()
+    pygame.mixer.quit()
 
 def playSound(color, dur):
     global sounds
@@ -463,19 +466,40 @@ def checkArduinios():
             return False
 
 buttons = []
+buttonstack = []
+signals = [0,0,0,0,0]
+i = 0
+while i < 10:
+    buttonstack.append([0,0,0,0,0])
+    i = i + 1
+nextbuttonstack = 0
+
 numreadfails = 0
 
 def sendCommand(buttonId, cmd, data):
     # to send a command to the arduino:
-    i2cbus.write_byte_data(ardAddr, 0, cmd)
+    #i2cbus.write_byte_data(ardAddr, 0, cmd)
+    pass
 
 
 def ReadButtons():
     global buttons
+    global signals
     global numreadfails
     if bTestMode == False: 
         try:
             buttons = i2cbus.read_i2c_block_data(ardAddr, 1)
+            for i in range (SIMON_CENTER+1, SIMON_LAST+1):
+                if buttons[i] > 5:
+                    signals[i] = signals[i] + 1
+                else:
+                    signals[i] = 0
+
+            '''buttonstack[nextbuttonstack] = buttons[:5]
+            nextbuttonstack = nextbuttonstack + 1
+            if nextbuttonstack >= len(buttonstack):
+                nextbuttonstack = 0
+            '''
             LOG(buttons[:5])
         except:
             numreadfails = numreadfails + 1
@@ -486,18 +510,29 @@ def ReadButtons():
             LOG("=======================================")
     pass
 
+def clearbuttons():
+    global buttons
+    global signals
+    for i in range(SIMON_CENTER, SIMON_LAST+1):
+        signals[i] = 0   
+
 
 def evalButtons():
-    global buttonPushed
     global buttons
-    if buttons != None and len(buttons) > SIMON_LAST:
-        maxWeight = 5      # filter out low weights
+    global signals
+    global buttonPushed
+    if len(buttons) < SIMON_LAST + 1:
+        return
+    if buttons[SIMON_CENTER] > 0:
+        buttonPushed = SIMON_CENTER
+    else:
+        maxWeight = 5
+        buttonPushed = -1
         for i in range(SIMON_CENTER, SIMON_LAST+1):
-            if buttons[i] > maxWeight:
-                maxWeight = buttons[i]
+            if buttons[i] > maxWeight and signals[i] > 18:
                 buttonPushed = i
-        if maxWeight == 5:
-            buttonPushed = -1
+                maxWeight = buttons[i] 
+
 
 def newGame(ts):
     global curSequence
@@ -663,7 +698,7 @@ def evaluateChoice(ts):
 
     # reset button selection    
     buttonPushed = -1
-
+    clearbuttons()
 
 
 def showError(ts):
@@ -876,6 +911,7 @@ def main(argv):
             loop()
     except KeyboardInterrupt:
         allLightsOff()
+        audioQuit()
         bGo = False
 
 if __name__ == "__main__":

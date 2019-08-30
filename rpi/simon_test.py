@@ -150,7 +150,7 @@ def setupLights():
     CenterLights[SIMON_YELLOW][1] = LED(8)
     CenterLights[SIMON_YELLOW][2] = LED(7)
 
-    # error is just RED
+    # error is all four colors
     ButtonLight[SIMON_ERROR] = ButtonLight[SIMON_RED]
     SpotLights[SIMON_ERROR] = SpotLights[SIMON_RED]   #
     CenterLights[SIMON_ERROR][0] = CenterLights[SIMON_RED][0]
@@ -300,16 +300,16 @@ def DMXLightOn(color):
         dmx.set_channel(DMX_RED + 2, 0)
         dmx.set_channel(DMX_RED + 3, 0)
 
-        dmx.set_channel(DMX_GREEN + 1, 255)
-        dmx.set_channel(DMX_GREEN + 2, 0)
+        dmx.set_channel(DMX_GREEN + 1, 0)
+        dmx.set_channel(DMX_GREEN + 2, 255)
         dmx.set_channel(DMX_GREEN + 3, 0)
 
-        dmx.set_channel(DMX_BLUE + 1, 255)
+        dmx.set_channel(DMX_BLUE + 1, 0)
         dmx.set_channel(DMX_BLUE + 2, 0)
-        dmx.set_channel(DMX_BLUE + 3, 0)
+        dmx.set_channel(DMX_BLUE + 3, 255)
 
         dmx.set_channel(DMX_YELLOW + 1, 255)
-        dmx.set_channel(DMX_YELLOW + 2, 0)
+        dmx.set_channel(DMX_YELLOW + 2, 128)
         dmx.set_channel(DMX_YELLOW + 3, 0)
 
     dmx.submit()
@@ -394,6 +394,7 @@ def allLightsOff():
 
 def setPowerLight(bOn):
     if bOn:
+        return
         PowerLight.on()
     else:
         PowerLight.off()
@@ -578,7 +579,7 @@ def makePlayersChoice():
     if bTestMode:
         # set button pushed to last color
         if curStep < len(curSequence):
-            if len(curSequence) > 5:
+            if len(curSequence) > 14:
                 buttonPushed = -1   # end the game
             else:
                 LOG("Sequence Length " + str(len(curSequence)))
@@ -702,12 +703,23 @@ def DoGotoState(ts, newState):
     bWaitForState = False
 
 def DoLightOn(ts, data):
-    colorOn(data)
-    pass
-
+    if data == SIMON_ERROR:
+        colorOn(SIMON_RED)
+        colorOn(SIMON_GREEN)
+        colorOn(SIMON_BLUE)
+        colorOn(SIMON_YELLOW)
+    else:
+        colorOn(data)
+    
 def DoLightOff(ts, data):
-    colorOff(data)
-    pass
+    if data == SIMON_ERROR:
+        colorOff(SIMON_RED)
+        colorOff(SIMON_GREEN)
+        colorOff(SIMON_BLUE)
+        colorOff(SIMON_YELLOW)
+    else:
+        colorOff(data)
+    
 
 def DoPlaySound(ts, data):
     pass
