@@ -1,0 +1,89 @@
+<html>
+
+    <script>
+        function populateTeams() {
+            var xhttp = new XMLHttpRequest();
+            xhttp.onreadystatechange = function() {
+                if (this.readyState == 4 && this.status == 200) {
+                    teamsObj = JSON.parse(this.responseText);
+
+                    txt = "";
+                    for (x in teamsObj) {
+                        txt += "<option value='" + teamsObj[x].teamid + "'>" +  teamsObj[x].name + "</option>";
+                    }
+                    txt += "";
+                    document.getElementById("teamlist").innerHTML = txt;
+                }
+            };
+            xhttp.open("GET", "../api/teams/fetch", true);
+            xhttp.send();
+        }
+
+        function getTeams() {
+            var xhttp = new XMLHttpRequest();
+            xhttp.onreadystatechange = function() {
+                if (this.readyState == 4 && this.status == 200) {
+                    teamsObj = JSON.parse(this.responseText);
+                    txt = "<table border='1' ><tr><td>Id</td><td>Team Name</td><td>Sponsor</td><td>High Score</td></tr>";
+                    for (x in teamsObj) {
+                        txt += "<tr><td>" + teamsObj[x].teamid + "</td><td>" + teamsObj[x].name + "</td><td>" + teamsObj[x].sponsor + "</td><td> High Score=" + teamsObj[x].poolscore + "</td></tr>";
+                    }
+                    txt += "</table>";
+                    document.getElementById("teamtable").innerHTML = txt;
+                }
+            };
+            xhttp.open("GET", "../api/teams/fetch", true);
+            xhttp.send();
+        }
+
+        function processForm(e) {
+            if (e.preventDefault) e.preventDefault();
+            /* do what you want with the form */
+
+            // You must return false to prevent the default form behavior
+            return false;
+        }
+
+        document.addEventListener('readystatechange', () => {    
+            if (document.readyState == 'complete') {
+                populateTeams();
+                getTeams();
+            }
+        });
+
+    </script>
+        
+        
+    <body>
+        <h1>Report Score</h1>
+        <form id="theform" name="registerteamform" method="POST" action="../api/teams/registerscore">
+            <label>Team:</label>
+            <select name="teamid" id="teamlist">
+                <option value="1">one</option>
+                <option value="2">two</option>
+            </select>
+            Score: <input type="text" name="score" /><br>
+            <input onclick="submitregister()" type="submit" value="Submit score" />
+            <a href="javascript: submitregister()">Report Score</a>
+        </form>
+        <button type="button" onClick="populateTeams()">Refresh</button>
+ 
+        <div>
+                <h2>Teams</h2>
+                <div id="teamtable"></div>
+        </div>
+    
+
+        <script type="text/javascript">
+        var form = document.getElementById('theform');
+        if (form.attachEvent) {
+            form.attachEvent("submit", processForm);
+        } else {
+            form.addEventListener("submit", processForm);
+        }        
+        function submitregister() {
+            document.registerteamform.submit();
+        }
+        </script>
+    </body>
+</html>

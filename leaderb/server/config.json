@@ -1,0 +1,15 @@
+{
+    "PublicUrl" : "localhost:8080",
+    "Port" : ":8080",
+    "WWWRoot":"src/jmh/app/wwwroot",
+    "DefaultFile":"index.html",
+    "ApiBase":"api",
+    "FileBase" : "/",
+    "DBPath" : "127.0.0.1:27017",
+    "SessionCollName" : "sessioncache",
+    "AppName" : "starterkit",
+    "AppVersion" : "0.1.1",
+    "AWSRegion" : "us-east-1",
+    "AWSProfile" : "default",
+    "LoggerFirehoseDeliveryStream" : "test-firehose1-useast-1"
+}

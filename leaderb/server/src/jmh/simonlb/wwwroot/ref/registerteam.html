@@ -1,0 +1,15 @@
+<html>
+    <body>
+        <h1>Register A New Team</h1>
+        <form name="registerteamform" method="POST" action="../api/teams/newteam">
+            Team Name: <input type="text" name="name" /><br>
+            Sponsor: <input type="text" name="sponsor" /><br>
+            <a href="javascript: submitregister()">Register</a>
+        </form>
+        <script type="text/javascript">
+        function submitregister() {
+            document.registerteamform.submit();
+        }
+        </script>
+    </body>
+</html>

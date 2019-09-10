@@ -1,0 +1,72 @@
+<html>
+    <head>
+
+        <script>
+
+        function getTeams() {
+            var xhttp = new XMLHttpRequest();
+            xhttp.onreadystatechange = function() {
+                if (this.readyState == 4 && this.status == 200) {
+                    teamsObj = JSON.parse(this.responseText);
+                    txt = "<table border='1' >";
+                    for (x in teamsObj) {
+                        txt += "<tr><td>" + teamsObj[x].teamid + "</td><td>" + teamsObj[x].name + "</td><td>" + teamsObj[x].sponsor + "</td><td> High Score=" + teamsObj[x].poolscore + "</td></tr>";
+                    }
+                    txt += "</table>";
+                    document.getElementById("teamtable").innerHTML = txt;
+                }
+            };
+            xhttp.open("GET", "../api/teams/fetch", true);
+            xhttp.send();
+        }
+        function fetchCurTourney() {
+            var xhttp = new XMLHttpRequest();
+            xhttp.onreadystatechange = function() {
+                if (this.readyState == 4 && this.status == 200) {
+                    myObj = JSON.parse(this.responseText);
+                    cd = document.getElementById("curtourny");
+                    cd.innerText = myObj.name
+                    getTeams();
+                }
+            };
+            xhttp.open("GET", "../api/teams/tourney", true);
+            xhttp.send();
+        }
+
+        document.addEventListener('readystatechange', () => {    
+            if (document.readyState == 'complete') {
+                fetchCurTourney();
+            }
+        });
+        </script>
+
+    </head>
+    <body>
+        <h1>Giant Simon Admin Panel</h1>
+
+        <div>Current Tournament: 
+            <div id="curtourny">unknown</div>
+            <button type="button" onClick="fetchCurTourney()">Refresh</button>
+        </div>
+        
+        <div>
+            <ul>
+                <li><a href="login.html">Login</a></li>
+                <li><a href="newtourney.html">New Tournement</a></li>
+                <li><a href="registerteam.html">Register Team</a></li>
+                <li><a href="reportscore.html">Record Score</a></li>
+            </ul>
+        </div>
+
+        <div>
+            <h2>Teams</h2>
+            <div id="teamtable"></div>
+
+
+        </div>
+
+
+    </body>
+
+
+</html>

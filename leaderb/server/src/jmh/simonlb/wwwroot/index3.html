@@ -1,0 +1,475 @@
+<!DOCTYPE html>
+<!-- saved from url=(0042)http://www.tatsuang.com/website/index.html -->
+<html><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+	 
+	<title>World's Largest Simon</title>
+	<meta name="keywords" content="Simon, 80&#39;s, outdoor, activities, world record, guinness, guinness world record, game, redmond, washington">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<link rel="shortcut icon" href="./favicon.png">
+	<link rel="stylesheet" href="./animate.min.css">
+	<link rel="stylesheet" href="./css.css">
+
+	<script src="./index3_files/jquery.min.js.download"></script>
+
+</head>
+
+<body>
+<!--Topbar-->
+	<div id="topbarDesktop" class="topbar fixedspot">
+		<div class="absolutespot topbar">
+			<div class="topbarText blueText" style="float: right;">
+				<span class="topbarHome">Home</span>
+				&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+				<span class="topbarLeaderboard">Leaderboard</span>
+				&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+				<span class="topbarRegister">Register</span>
+			</div>
+		</div>
+		<div class="animateBar greenBackground" style="height: 0px;"></div>
+	</div>
+
+	<div id="topbarMobile" class="topbar disappear fixedspot">
+		<div class="absolutespot topbar">
+			<div style="float: right;">
+				<div id="nav-toggle"><span></span></div>
+			</div>
+		</div>
+		<div class="animateBar greenBackground" style="height: 0px;"></div>
+	</div>
+
+	<!--Navigation-->
+	<div id="Navigation" class="overlay disappear greenBackground">
+  		<div class="overlay-content">
+   		 <a class="topbarHome">Home</a>
+    	 <a class="topbarLeaderboard">Leaderboard</a>
+   		 <a class="topbarRegister">Register</a>
+  		</div>
+	</div>
+
+
+	<!--Big Image Intro-->
+	<div id="Intro" class="imageIntro">
+
+			<div id="BigImageBox1" class="verticalAlign" style="z-index:90;">
+				<div id="oneRedmond" class="oneRedmond blueText animated2 fadeIn">OneRedmond Presents</div>
+				<div class="image">
+					<div id="BigLogo" class="delay animated2 fadeInUp">
+						<img src="./index3_files/logo_main.png" style="width:100%;">
+					</div>
+				</div>
+				<div id="bigButton" class="Button delay3 animated2 fadeInUp">
+					LET'S PLAY!
+				</div>
+			</div>
+			<div id="gradientbridge" class="gradientbg smallBar">
+				<div style="height:65%"></div>
+				<div id="FindOut" class="delay3 animated fadeIn" style="margin: 0 auto; width:40px; cursor: pointer;">
+				<img style="width:100%" src="./index3_files/arrow.png" alt="arrow" title="arrow">
+				</div>
+			</div>
+
+	</div>
+
+	<!--About-->
+	<div id="About" class="About">
+
+		<div id="aboutText2" class="AboutText verticalAlign">
+			<div id="AboutHead" class="invisible">
+				<h1 class="blueText">
+					<div class="AboutBox">&nbsp;</div>
+					About
+				</h1>
+			</div>
+			<div style="height:10px;"></div>
+			<p id="AboutText" class="whiteText invisible">It is a long established fact that a reader will be distracted by the readable content of a page when looking at its layout. The point of using Lorem Ipsum is that it has a more-or-less normal</p>
+			<div style="height:20px;"></div>
+		</div>
+	
+	</div>
+<div class="whiteBackground">
+	<!--Sponsors-->
+	<div id="Sponsors" class="sponsors whiteBackground">
+		<div style="height:100px;"></div>
+		<div>
+			<div id="SponsorHead" class="invisible AboutText">
+				<h1 class="blueText">
+					<div class="AboutBox">&nbsp;</div>
+					Sponsors
+				</h1>
+			</div>
+			<div style="height:10px;"></div>
+			<div id="SponsorBody" class="invisible sponsorcontainer">
+				<div class="sponsorImage">
+					<img src="./index3_files/sponsor_oneredmond.png" style="width:100%;">
+				</div>
+				<div class="sponsorImage">
+					<img src="./index3_files/sponsor_artcenter.jpeg" style="width:100%;">
+				</div>
+			</div>
+		</div>
+		<div style="height:100px;"></div>
+	
+	</div>
+
+	<!--Register-->
+	<div id="Registration" class="gradientWithSimonbg">
+		<div style="height:200px"></div>
+		<div id="registerHeader" class="centerHeader orangeText invisible"><h1>Register today!</h1></div>
+		<div style="height:20px;"></div>
+		<div id="registerForm" class="Button invisible">
+			REGISTER
+		</div>
+		<div style="height:200px"></div>
+	</div>
+</div>
+	
+	<!--Copyright-->
+	<div style="background-color: #084654; padding: 20px;" class="whiteText">
+	<div style="height:10px"></div>
+	<div class="footer"> 
+		<span id="Privacy" style="cursor:pointer;">Privacy Policy</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;|&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span id="Terms" style="cursor:pointer;">Terms of use</span>
+	</div>
+	<div style="height:20px"></div>
+	
+	
+	
+	<!--Script-->
+	
+<script>
+	$(document).ready(function () {
+	//Topbar
+  		//Hover
+  	$('.topbarHome').mouseover(function(){
+  		  $( this ).fadeTo(300, 0.5);
+	});
+	$('.topbarHome').mouseout(function(){
+  		  $( this ).fadeTo(300, 1);
+	});
+	$('.topbarLeaderboard').mouseover(function(){
+  		  $( this ).fadeTo(300, 0.5);
+	});
+	$('.topbarLeaderboard').mouseout(function(){
+  		  $( this ).fadeTo(300, 1);
+	});
+	$('.topbarRegister').mouseover(function(){
+  		  $( this ).fadeTo(300, 0.5);
+	});
+	$('.topbarRegister').mouseout(function(){
+  		  $( this ).fadeTo(300, 1);
+	});
+
+	//Home
+	$(".topbarHome").mousedown(function() {
+		if ($( "#nav-toggle" ).hasClass( "active" )){
+			$(".animateBar").css({"height":"0px"});
+			$('#nav-toggle').removeClass("active");
+			$( "#Navigation" ).slideToggle( "slow", function(){
+				$('html,body').animate({
+				scrollTop: $("#Intro").offset().top}, 'slow');
+			} );
+
+		} else{
+			$(".animateBar").css({"height":"0px"});
+			$('html,body').animate({
+			scrollTop: $("#Intro").offset().top}, 'slow');
+
+		}
+	});
+
+	//Leaderboard
+	$(".topbarLeaderboard").mousedown(function() {
+		$('#nav-toggle').removeClass("active");
+		$( "#Navigation" ).slideToggle( "slow", function(){
+			$(location).attr('href','leaderboard.html')
+		} );
+		
+	});
+	//Registration
+	$(".topbarRegister").mousedown(function() {
+		if ($( "#nav-toggle" ).hasClass( "active" )){
+			$(".animateBar").css({"height":"50px"});
+			$('#nav-toggle').removeClass("active");
+			$( "#Navigation" ).slideToggle( "slow", function(){
+				$('html,body').animate({
+				scrollTop: $("#Registration").offset().top}, 'slow');
+			});
+			$('#AboutHead').removeClass('invisible').addClass('animated fadeInLeft');
+			$('#AboutText').removeClass('invisible').addClass('animated fadeInRight');
+			$('#SponsorHead').removeClass('invisible').addClass('animated fadeInLeft');
+			$('#SponsorBody').removeClass('invisible').addClass('animated fadeInUp');
+			$('#registerHeader').removeClass('invisible').addClass('delay2 animated fadeIn');
+			$('#registerForm').removeClass('invisible').addClass('delay2 animated fadeInUp ');
+		} else{
+			$(".animateBar").css({"height":"50px"});
+			$('html,body').animate({
+			scrollTop: $("#Registration").offset().top}, 'slow');
+			$('#AboutHead').removeClass('invisible').addClass('animated fadeInLeft');
+			$('#AboutText').removeClass('invisible').addClass('animated fadeInRight');
+			$('#SponsorHead').removeClass('invisible').addClass('animated fadeInLeft');
+			$('#SponsorBody').removeClass('invisible').addClass('animated fadeInUp');
+			$('#registerHeader').removeClass('invisible').addClass('delay2 animated fadeIn');
+			$('#registerForm').removeClass('invisible').addClass('delay2 animated fadeInUp ');
+		}
+	});
+
+	//Footer
+		//hover
+		$('#Privacy').mouseover(function(){
+  		  $( this ).fadeTo(300, 0.5);
+		});
+		$('#Privacy').mouseout(function(){
+  		  $( this ).fadeTo(300, 1);
+		});
+		$('#Terms').mouseover(function(){
+  		  $( this ).fadeTo(300, 0.5);
+		});
+		$('#Terms').mouseout(function(){
+  		  $( this ).fadeTo(300, 1);
+		});
+		//Link
+		$("#Privacy").click(function() {
+		$(location).attr('href','')
+		});
+		$("#Terms").click(function() {
+		$(location).attr('href','')
+		});
+
+//Animation and  Scrolling link
+	//Landing page
+	$('#oneRedmond').removeClass('invisible').addClass('animated2 fadeIn');
+	$('#BigLogo').removeClass('invisible').addClass('delay animated2 fadeInUp ');
+	$('#bigButton').removeClass('invisible').addClass('delay3 animated2 fadeInUp ');
+	$('#FindOut').removeClass('invisible').addClass('delay3 animated fadeIn');
+
+	//Click on play button
+	$("#bigButton").click(function() {
+		$(".animateBar").css({"height":"50px"});
+		$('html,body').animate({
+			scrollTop: $("#Registration").offset().top-48},
+		'slow');
+
+		$('#AboutHead').removeClass('invisible').addClass('animated fadeInLeft');
+		$('#AboutText').removeClass('invisible').addClass('animated fadeInRight');
+		$('#SponsorHead').removeClass('invisible').addClass('animated fadeInLeft');
+		$('#SponsorBody').removeClass('invisible').addClass('animated fadeInUp');
+		$('#registerHeader').removeClass('invisible').addClass('delay2 animated fadeIn');
+		$('#registerForm').removeClass('invisible').addClass('delay2 animated fadeInUp');
+	});
+
+	//Click to about
+	$("#FindOut").click(function() {
+		$(".animateBar").css({"height":"50px"});
+		$('html,body').animate({
+			scrollTop: $("#About").offset().top-48},
+		'slow');
+
+		$('#AboutHead').removeClass('invisible').addClass('animated fadeInLeft');
+		$('#AboutText').removeClass('invisible').addClass('animated fadeInRight');
+		$('#SponsorHead').removeClass('invisible').addClass('delay2 animated fadeInLeft');
+		$('#SponsorBody').removeClass('invisible').addClass('delay2 animated2 fadeInUp');
+	});
+
+	//Timed-Animation
+
+		$('body,html').on('click scroll mousedown mouseout mouseover wheel DOMMouseScroll mousewheel keyup keypress touchmove ' , function (event) {
+			if ($(window).scrollTop() >= ($("#Intro").offset().top)) {
+				$(".animateBar").css({"height":"0px"});
+			} 
+		//AboutPage
+			if ($(window).scrollTop() >= ($("#Intro").offset().top+10)) {
+				$(".animateBar").css({"height":"50px"});
+			} 
+			if ($(window).scrollTop() >= ($("#gradientbridge").offset().top-400)) {
+				$('#AboutHead').removeClass('invisible').addClass('animated fadeInLeft');
+				$('#AboutText').removeClass('invisible').addClass('animated fadeInRight');
+			}
+			if ($(window).scrollTop() >= ($("#Sponsors").offset().top-700)) {
+				$('#SponsorHead').removeClass('invisible').addClass('animated fadeInLeft');
+				$('#SponsorBody').removeClass('invisible').addClass('delay2 animated2 fadeInUp');
+			}
+			if ($(window).scrollTop() >= ($("#Registration").offset().top-700)) {
+				$('#registerHeader').removeClass('invisible').addClass('animated2 fadeIn');
+				$('#registerForm').removeClass('invisible').addClass('delay2 animated fadeInUp');
+			}
+
+		}).scroll();
+
+	
+
+	//Dimensions for Mobile
+	function changeCSS() {
+      		var theWidth = $(window).width();
+      		var theHeight = $(window).height();
+      		//Debugging
+      		//alert(theWidth);
+		//alert(theHeight);
+
+      		 var isMobile = /Android|webOS|iPhone|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+      		  var isIpad = /iPad/i.test(navigator.userAgent);
+     	if ( theHeight > theWidth && isMobile){
+      		 		
+
+      		 	//Big Image
+      		 	$('#topbarDesktop').addClass('disappear');
+      		 	$('#topbarMobile').removeClass('disappear');
+      		 	$('#Intro').height(theHeight);
+      		 	$('.image').css({
+      		 		"width": "100%"
+      		 		});
+      		 	$(".Button").css({
+      		 		"width":"50%",
+      		 		"font-size":"1.5em",
+      		 		"padding":"10px 20px",
+      		 		});
+      		 	$("#FindOut").css({
+      		 		"width": "10%",
+      		 		});
+      		 	$(".imageIntro").css({
+      		 		"background-size":"150%, 100%",
+      		 		});
+
+      		 	//About
+      		 	$(".AboutText").css({
+      		 		"width": "90%",
+      		 		"padding":"20% 0",
+      		 		"display":"block",
+      		 		"margin":"0 auto"
+      		 		});
+      		 	$("#AboutHead, #SponsorHead").css({
+      		 		"font-size": "0.8em",
+      		 		});
+      		 	$("#AboutText").css({
+      		 		"font-size": "1.3em",
+      		 		});
+
+      		 	//Sponsor
+      		 	$(".sponsorcontainer").css({
+      		 		"width": "100%",
+      		 		});
+      		 	$(".sponsorImage").css({
+      		 		"width": "100%",
+      		 		"padding": "30px 0",
+      		 		"display": "block",
+      		 		});
+
+      		 	//Register
+      		 	$(".Registration").css({
+      		 		"width": "70%",
+      		 		});
+
+
+				
+		} else if ( theHeight <= theWidth && isMobile){
+
+
+      		 	//Big Image
+      		 	$('#topbarDesktop').addClass('disappear');
+      		 	$('#topbarMobile').removeClass('disappear');
+      		 	$('.image').css({
+      		 		"top":"20%",
+      		 		"width": "40%",
+      		 		});
+      		 	$(".Button").css({
+      		 		"width":"20%",
+      		 		"font-size": "1.3em",
+      		 		"padding":"10px 20px",
+      		 		});
+      		 	$("#FindOut").css({
+      		 		"width": "2%",
+      		 		});
+
+      		 	
+      		 	//About
+      		 	$("#About").css({
+      		 		"height":"100vh"
+      		 	})
+      		 	$(".AboutText").css({
+      		 		"width": "90%",
+      		 		"display":"block",
+      		 		"margin":"0 auto"
+      		 		});
+      		 	$("#AboutHead, #SponsorHead").css({
+      		 		"font-size": "0.8em",
+      		 		});
+      		 	$("#AboutText").css({
+      		 		"font-size": "1.3em",
+      		 		});
+      		 	//Register
+      		 	$(".Registration").css({
+      		 		"width": "70%",
+      		 		});
+
+
+
+				
+		} else  if ( theHeight > theWidth && isIpad){
+
+      		 	//Big Image
+      		 	$('#Intro').height(theHeight);
+      		 	$('.image').css({
+      		 		"width": "90%"
+      		 		});
+      		 	$(".Button").css({
+      		 		"width":"30%"
+      		 		});
+      		 	$("#FindOut").css({
+      		 		"width": "7%"
+      		 		});	
+      		 	$(".imageIntro").css({
+      		 		"background-size":"120%, 100%",
+      		 		}); 	
+      		 	//About
+      		 	$("#About").css({
+      		 		"height": "30vh",
+      		 		});
+      		 	$(".AboutText").css({
+      		 		"width": "90%",
+      		 		"display":"block",
+      		 		"margin":"0 auto"
+      		 		});
+      		 	$("#AboutHead, #SponsorHead").css({
+      		 		"font-size": "1em",
+      		 		});
+      		 	$("#AboutText").css({
+      		 		"font-size": "1.5em",
+      		 		});
+      		 	//Register
+      		 	$(".Registration").css({
+      		 		"width": "70%",
+      		 		});
+
+
+				
+		} else  if ( theWidth >= theHeight && isIpad){
+
+      		 	//Big Image
+      		 	$('.image').css({
+      		 		"width": "50%",
+      		 		});
+      		
+		 }
+		$(window).resize();
+	}
+		// Execute on load
+   		changeCSS();
+	
+	});
+</script>
+	
+
+<script>
+//Navigation
+//shape shifting hamburger menu
+$("#nav-toggle").click(function() {
+		$('#nav-toggle').toggleClass("active");
+		$( "#Navigation" ).slideToggle( "slow" );
+});
+</script>
+	
+
+
+	
+
+
+
+</div></body></html>

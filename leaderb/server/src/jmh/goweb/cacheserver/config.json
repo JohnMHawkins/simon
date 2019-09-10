@@ -1,0 +1,14 @@
+{
+    "Port" : ":8090",
+    "WWWRoot":"",
+    "DefaultFile":"index.html",
+    "ApiBase":"api",
+    "FileBase" : "/",
+    "DBPath" : "",
+    "SessionCollName" : "",
+    "AppName" : "cacheserver",
+    "AppVersion" : "0.1.1",
+    "AWSRegion" : "us-east-1",
+    "AWSProfile" : "default",
+    "LoggerFirehoseDeliveryStream" : "hawk-test-firehose1-useast-1"
+}

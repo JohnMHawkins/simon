@@ -299,6 +299,8 @@ func (h TeamServer) HandleGet (w http.ResponseWriter, r *http.Request) {
 	logger.StdLogger.LOG(logger.INFO, "", fmt.Sprintf("TeamServer GET handler called for %s", apiPath), nil)
 	pathParts, params := webber.ParsePathAndQueryFlat(r, apiPath, pathVars )
 
+	logger.StdLogger.LOG(logger.INFO, "", fmt.Sprintf("TeamServer GET handler pathParts[0] %s", pathParts[0]), nil)
+
 	switch pathParts[0] {
 	case "fetch":
 		doGetTeams(w,r,params )
@@ -312,6 +314,8 @@ func (h TeamServer) HandleGet (w http.ResponseWriter, r *http.Request) {
 		doGetLeaderboard(w,r,params )
 	case "champion":
 		doGetChampion(w,r,params )
+	case "tourney":
+		doGetTourney(w,r,params)
 	default:
 		http.Error(w, "NYI", http.StatusNotImplemented)
 	
@@ -512,6 +516,29 @@ func doGetChampion(w http.ResponseWriter, r *http.Request, params map[string]str
 
 }
 
+func doGetTourney(w http.ResponseWriter, r *http.Request, params map[string]string) {
+	session := GetUserSessionHandleError(w,r)
+	// we actually don't care about the user yet, but we might later if we want to decorate the UI with
+	// capabilities.  
+	if  (session != nil ) {
+		u, err := GetUser(session.Username)
+		if (err != nil ) {
+			logger.StdLogger.LOG(logger.ERROR, webber.GetCorrelationId(r), fmt.Sprintf("Can't get user for userrname %s, err = %s", u.Username, err.Error()), nil)
+			http.Error(w, err.Code, http.StatusInternalServerError)
+			return
+		}
+	}
+
+	t, err := GetCurTourneyStatus()
+	if (err == nil) {
+		webber.ReturnJson(w,t)
+	} else {
+		http.Error(w, "foo", http.StatusInternalServerError)
+		return
+	}
+
+}
+
 
 /////////////////////////
 //
@@ -690,8 +717,11 @@ func doRegisterScore( w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		
+		teamId := r.FormValue("teamid")
+		logger.StdLogger.LOG(logger.INFO, webber.GetCorrelationId(r), fmt.Sprintf("gotTeamId, team=%s", teamId, ), nil)
+
 		var docTemplate Team
-		t, dbErr := teamColl.Read(curTeamId, &docTemplate) 
+		t, dbErr := teamColl.Read(teamId, &docTemplate) 
 		if ( dbErr != nil ) {
 			logger.StdLogger.LOG(logger.INFO, webber.GetCorrelationId(r), fmt.Sprintf("Error updating score, team=%s, err=%s", curTeamId, dbErr.Error()), nil)
 			http.Error(w, tErr.Code, http.StatusBadRequest)

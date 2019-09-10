@@ -1,0 +1,362 @@
+
+@font-face {
+    font-family: TextFont;
+    src: url(SuperspaceBoldItalic.ttf);
+}
+
+html, body {
+margin:0;
+padding:0;
+cursor:default;
+border-width: 0;
+width: 100%;
+background-color: #084654;
+}
+
+@font-face {
+    font-family: HeaderFont;
+    src: url(edunline.ttf);
+}
+
+
+
+
+@font-face {
+    font-family: FooterFont;
+    src: url(DINOT_CondBold.otf);
+}
+
+.blueText{
+	color: #0000ff;
+}
+
+.orangeText{
+	color: #f15a24;
+}
+
+.greyText{
+	color: #4d4d4d;
+}
+
+.tealText{
+	color: #0071bc;
+}
+.whiteText{
+	color: white;
+}
+
+.invisible{
+	opacity:0;
+}
+
+.disappear{
+	display:none;
+}
+
+.fixedspot{
+	position: fixed;
+}
+.absolutespot{
+	position: absolute;
+}
+
+.whiteBackground{
+	background-color: #ffffff;
+}
+.blueBackground{
+	background-color: #0000ff;
+}
+.greenBackground{
+	background-color: #d0efed;
+}
+
+
+.gradientbg {
+    background: -webkit-linear-gradient(top, rgba(126,212,206,0), rgba(126,212,206,1)); /* For Safari 5.1 to 6.0 */
+    background: -o-linear-gradient(bottom, rgba(126,212,206,0), rgba(126,212,206,1)); /* For Opera 11.1 to 12.0 */
+    background: -moz-linear-gradient(bottom, rgba(126,212,206,0), rgba(126,212,206,1)); /* For Firefox 3.6 to 15 */
+    background: linear-gradient(to bottom, rgba(126,212,206,0), rgba(126,212,206,1)); /* Standard syntax (must be last) */
+}
+.gradientWithSimonbg {
+    background-image: url("background_simons.png"), linear-gradient(to bottom, rgba(255,255,255,1), rgba(126,212,206,1));
+    background-repeat: no-repeat, no-repeat;
+	background-position: center, center;
+	background-size: cover, 100%;
+	width: 100%;
+}
+.smallBar{
+	height: 150px;
+    width:100%;
+    position: absolute;
+    bottom: 0;
+}
+
+.topbar{
+	width: 100vw;
+	height: 50px;
+	z-index: 200;
+}
+.topbarText{
+	text-align: right;
+	padding-right: 20px;
+	line-height: 50px;
+	font-size: 1.125em;
+	font-family:FooterFont;
+	vertical-align: middle;
+	display: inline-block;
+	cursor: pointer;
+}
+
+.animateBar{
+	width: 100%;
+	height: 0px;
+	-webkit-transition: height 300ms;
+    transition: height 300ms;
+    top: 0px;
+    position: absolute;
+}
+
+/*intro*/
+.oneRedmond{
+	margin:0;
+	padding: 0;
+	font-family: HeaderFont;
+	font-weight:normal;
+	font-size:1.5em;
+	text-align: center;
+}
+
+.imageIntro{
+	background-image: url("background_grid.png"), radial-gradient(farthest-corner at 50% 80%, #7ed4ce,#ffffff);
+	background-repeat: no-repeat, no-repeat;
+	background-position: center, center;
+	background-size: 70vw, 100%;
+	height:100vh;
+	width: 100%;
+	}
+.image{
+	width:40%;
+	margin: auto;
+}
+.Button{
+	text-align: center;
+	font-family: HeaderFont;
+	font-size: 2em;
+	color: white;
+	margin: auto;
+	width: 20%;
+	padding: 20px;
+	background-color: #0000ff;
+	border-radius: 4px;
+	-webkit-transition: 0.3s;
+	transition: 0.3s;
+	cursor: pointer;
+}
+.Button:hover{
+	background-color: #0a0aa3;
+}
+
+.About{
+	background-image: url("background_about.png");
+	background-repeat: no-repeat;
+	background-position: right bottom;
+	background-size: 90vw;
+	background-color: #00a99d;
+	height:70vh;
+	width: 80%;
+	padding: 0 10%;
+}
+
+.verticalAlign{
+	position: relative;
+ 	top: 50%;
+  	transform: translateY(-50%);
+  	-webkit-transform: translateY(-50%);
+  	-ms-transform: translateY(-50%);
+}
+
+.AboutText{
+	padding:0 20 0 20;
+	margin: 0;
+	display: inline-block;
+	width: 37%;
+	vertical-align: top;
+}
+.AboutText h1{
+	margin:0;
+	font-family: HeaderFont;
+	font-weight:normal;
+	font-size:3em;
+	display: inline-block;
+}
+.AboutText p{
+	margin:0;
+	font-size: 1.5em;
+	font-family: SuperFont;
+	word-wrap: break-word;
+}
+.AboutBox{
+	background-color: #f15a24;
+	display: inline-block;
+}
+
+.Registration{
+	width: 40%;
+	margin: auto;
+}
+
+.centerHeader h1{
+	margin:0;
+	font-family: HeaderFont;
+	font-weight:normal;
+	font-size:3em;
+	text-align: center;
+}
+
+input[type=text] {
+  width: 100%;
+  background-color: transparent;
+  text-align: center;
+  font-size: 1.5em;
+  color: #0000ff;
+  margin: 40px 0 30px 0;
+  padding: 10px;
+  box-sizing: border-box;
+  border: none;
+  border-bottom: 3px solid #0000ff;
+  font-family: SuperFont;
+  -webkit-transition: 0.3s;
+  transition: 0.3s;
+  outline: none;
+}
+
+.Registration input[type=text]:focus {
+  border-bottom: 3px solid #0000ff;
+}
+
+.Registration input[type=submit] {
+  width: 100%;
+  background-color: #0000ff;
+  font-size: 1.5em;
+  color: white;
+  margin: auto;
+  padding: 10px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-family: HeaderFont;
+  -webkit-transition: 0.3s;
+  transition: 0.3s;
+  outline: none;
+}
+.Registration ::placeholder {
+  color: #0000ff;
+  opacity: 0.5;
+}
+
+.Registration :-ms-input-placeholder {
+ color: #0000ff;
+ opacity: 0.5;
+}
+
+input[type=submit]:hover {
+  background-color: #0a0aa3;
+  font-family: HeaderFont;
+}
+
+
+.footer{
+	font-family: FooterFont;
+	padding-top:10px;
+	margin: 0 auto;
+	text-align: center;
+}
+
+.toggleHide{
+	display: none;
+}
+
+/*leaderboard*/
+.leaderboardText{
+	text-align: left;
+	line-height: 50px;
+	font-size: 1.125em;
+	font-family:FooterFont;
+	display: inline-block;
+	cursor: pointer;
+}
+	
+
+/*navigation*/
+.overlay {
+    height: 100%;
+    width: 100%;
+    position: fixed;
+    z-index: 100;
+    top: 0;
+    left: 0;
+    overflow-y: hidden;
+}
+
+.overlay-content {
+    position: relative;
+    top: 15%;
+    width: 100%;
+    text-align: center;
+    margin-top: 30px;
+    font-family: SuperFont;
+}
+
+.overlay a {
+    text-decoration: none;
+    padding: 1%;
+    font-size: 2em;
+    color: #0000ff;
+    display: block;
+    cursor: pointer;
+}
+
+.overlay span:hover{
+	text-decoration: underline;
+}
+/*shape shifting hamburger menu*/
+
+#nav-toggle { cursor: pointer;padding:23px; margin-right: 23px}
+#nav-toggle span, #nav-toggle span:before, #nav-toggle span:after {
+  cursor: pointer;
+  height: 2px;
+  width: 30px;
+  background: #0000ff;
+  position: absolute;
+  display: block;
+  content: '';
+}
+
+#nav-toggle span:before {
+  top: -10px; 
+}
+#nav-toggle span:after {
+  bottom: -10px;
+}
+
+#nav-toggle span, #nav-toggle span:before, #nav-toggle span:after {
+  transition: all 300ms ease-in-out;
+  -webkit-transition: all 300ms ease-in-out;
+}
+/* turn into x button */
+#nav-toggle.active span {
+  background-color: transparent;
+}
+#nav-toggle.active span:before, #nav-toggle.active span:after {
+  top: 0;
+}
+#nav-toggle.active span:before {
+ -ms-transform: rotate(45deg);
+  -webkit-transform: rotate(45deg);
+  transform: rotate(45deg);
+}
+#nav-toggle.active span:after {
+ -ms-transform: rotate(-45deg);
+  -webkit-transform: rotate(-45deg);
+  transform: rotate(-45deg);
+}

@@ -1,0 +1,1 @@
+set gopath=d:\projects\simon\leaderb\server
