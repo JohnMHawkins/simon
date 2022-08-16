@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+	<meta http-equiv="content-type" content="text/html; charset=UTF-8"> 
+	<title>World's Largest Simon</title>
+	<meta name="keywords" content="Simon, 80's, outdoor, activities, world record, guinness, guinness world record, game, redmond, washington">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<link rel="shortcut icon" href="favicon.png">
+	<link rel="stylesheet" href="animate.min.css">
+	<link rel="stylesheet" href="css.css">
+
+	<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+
+</head>
+
+<body>
+<!--Topbar-->
+	<div id="topbarDesktop" class="topbar fixedspot">
+		<div class="absolutespot topbar">
+			<div class="topbarText blueText" style="float: right;">
+				<span class="topbarHome">Home</span>
+				&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+				<span class="topbarSchedule">Schedule</span>
+				&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+				<span class="topbarLeaderboard">Leaderboard</span>
+				&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+				<span class="topbarGallery">Gallery</span>
+				&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+				<span class="topbarRegister">Register</span>
+			</div>
+		</div>
+		<div class="animateBar greenBackground"></div>
+	</div>
+
+	<div id="topbarMobile" class="topbar disappear fixedspot">
+		<div class="absolutespot topbar">
+			<div style="float: right;">
+				<div id="nav-toggle"><span></span></div>
+			</div>
+		</div>
+		<div class="animateBar greenBackground"></div>
+	</div>
+
+	<!--Navigation-->
+	<div id="Navigation" class="overlay disappear greenBackground">
+  		<div class="overlay-content">
+   		 <a class="topbarHome" >Home</a>
+   		 <a class="topbarSchedule" >Schedule</a>
+    	 <a class="topbarLeaderboard" >Leaderboard</a>
+    	 <a class="topbarGallery" >Gallery</a>
+   		 <a  class="topbarRegister" >Register</a>
+  		</div>
+	</div>
+
+
+	<!--Schedule-->
+	<div class="gradientWithSimonbg DetailText centerAlign">
+		<div style="height:100px"></div>
+		<div class="centerHeader blueText"><h2>Schedule</h2></div>
+		<div style="height:100px"></div>
+		<p class="greenText">coming soon</p>
+		<div style="height:45vh"></div>
+	</div>
+	
+	<!--Copyright-->
+	<div style="background-color: #084654; padding: 20px;" class="whiteText">
+	<div style="height:10px"></div>
+	<div class="footer"> 
+		<p>Icons made by Freepik from www.flaticon.com<p>
+	</div>
+	
+	
+	
+	<!--Script-->
+	
+<script>
+	$(document).ready(function () {
+	//Topbar
+  		//Hover
+  	$('.topbarHome').mouseover(function(){
+  		  $( this ).fadeTo(300, 0.5);
+	});
+	$('.topbarHome').mouseout(function(){
+  		  $( this ).fadeTo(300, 1);
+	});
+	$('.topbarSchedule').mouseover(function(){
+  		  $( this ).fadeTo(300, 0.5);
+	});
+	$('.topbarSchedule').mouseout(function(){
+  		  $( this ).fadeTo(300, 1);
+	});
+	$('.topbarLeaderboard').mouseover(function(){
+  		  $( this ).fadeTo(300, 0.5);
+	});
+	$('.topbarLeaderboard').mouseout(function(){
+  		  $( this ).fadeTo(300, 1);
+	});
+	$('.topbarGallery').mouseover(function(){
+  		  $( this ).fadeTo(300, 0.5);
+	});
+	$('.topbarGallery').mouseout(function(){
+  		  $( this ).fadeTo(300, 1);
+	});
+	$('.topbarRegister').mouseover(function(){
+  		  $( this ).fadeTo(300, 0.5);
+	});
+	$('.topbarRegister').mouseout(function(){
+  		  $( this ).fadeTo(300, 1);
+	});
+
+	//Home
+	$(".topbarHome").mousedown(function() {
+		if ($( "#nav-toggle" ).hasClass( "active" )){
+			$('#nav-toggle').removeClass("active");
+			$( "#Navigation" ).slideToggle( "slow", function(){
+				$(location).attr('href','index.html')
+			} );
+		} else{
+			$(location).attr('href','index.html')
+		}
+	});
+
+	//Leaderboard, gallery, schedule
+	$(".topbarLeaderboard").mousedown(function() {
+		if ($( "#nav-toggle" ).hasClass( "active" )){
+			$('#nav-toggle').removeClass("active");
+			$( "#Navigation" ).slideToggle( "slow", function(){
+				$(location).attr('href','leaderboard.html')
+			} );
+		} else{
+			$(location).attr('href','leaderboard.html')
+		}
+		
+	});
+	$(".topbarGallery").mousedown(function() {
+		if ($( "#nav-toggle" ).hasClass( "active" )){
+			$('#nav-toggle').removeClass("active");
+			$( "#Navigation" ).slideToggle( "slow", function(){
+				$(location).attr('href','gallery.html')
+			} );
+		} else{
+			$(location).attr('href','gallery.html')
+		}
+		
+	});
+	$(".topbarSchedule").mousedown(function() {
+		if ($( "#nav-toggle" ).hasClass( "active" )){
+			$('#nav-toggle').removeClass("active");
+			$( "#Navigation" ).slideToggle( "slow", function(){
+				$(location).attr('href','schedule.html')
+			} );
+		} else{
+			$(location).attr('href','schedule.html')
+		}
+		
+	});
+	//Registration
+	$(".topbarRegister").mousedown(function() {
+		if ($( "#nav-toggle" ).hasClass( "active" )){
+			$(".animateBar").css({"height":"50px"});
+			$('#nav-toggle').removeClass("active");
+			$(location).attr('href','index.html#Howto');
+			
+		} else{
+			$(location).attr('href','index.html#Howto');
+		}
+	});
+
+	//Footer
+		//hover
+		$('#Privacy').mouseover(function(){
+  		  $( this ).fadeTo(300, 0.5);
+		});
+		$('#Privacy').mouseout(function(){
+  		  $( this ).fadeTo(300, 1);
+		});
+		$('#Terms').mouseover(function(){
+  		  $( this ).fadeTo(300, 0.5);
+		});
+		$('#Terms').mouseout(function(){
+  		  $( this ).fadeTo(300, 1);
+		});
+		//Link
+		$("#Privacy").click(function() {
+			window.open('', '_blank');
+		});
+		$("#Terms").click(function() {
+			window.open('', '_blank');
+		});
+
+	//Dimensions for Mobile
+	function changeCSS() {
+      		var theWidth = $(window).width();
+      		var theHeight = $(window).height();
+      		//Debugging
+      		//alert(theWidth);
+		//alert(theHeight);
+
+      		 var isMobile = /Android|webOS|iPhone|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+      		  var isIpad = /iPad/i.test(navigator.userAgent);
+     	if ( theHeight > theWidth && isMobile){
+      		 		
+
+      		 	//Big Image
+      		 	$('#topbarDesktop').addClass('disappear');
+      		 	$('#topbarMobile').removeClass('disappear');
+
+      		 	//Schedule
+      		 	$(".centerHeader h2").css({
+      		 		"font-size":"3em",
+      		 		});
+				
+		} else if ( theHeight <= theWidth && isMobile){
+
+
+      		 	//Big Image
+      		 	$('#topbarDesktop').addClass('disappear');
+      		 	$('#topbarMobile').removeClass('disappear');				
+		} 
+		$(window).resize();
+	}
+		// Execute on load
+   		changeCSS();
+	
+	});
+</script>
+	
+
+<script>
+//Navigation
+//shape shifting hamburger menu
+$("#nav-toggle").click(function() {
+		$('#nav-toggle').toggleClass("active");
+		$( "#Navigation" ).slideToggle( "slow" );
+});
+</script>
+	
+
+
+	
+</body>
+
+</html>

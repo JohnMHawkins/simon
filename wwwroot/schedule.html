@@ -1,0 +1,386 @@
+﻿<!DOCTYPE html>
+<html>
+
+<head>
+	<meta http-equiv="content-type" content="text/html; charset=UTF-8">
+	<title>World's Largest Simon</title>
+	<meta name="keywords" content="Simon, 80's, outdoor, activities, world record, guinness, guinness world record, game, redmond, washington">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<link rel="shortcut icon" href="favicon.png">
+	<link rel="stylesheet" href="animate.min.css">
+	<link rel="stylesheet" href="css.css">
+
+	<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.2/papaparse.min.js" integrity="sha512-SGWgwwRA8xZgEoKiex3UubkSkV1zSE1BS6O4pXcaxcNtUlQsOmOmhVnDwIvqGRfEmuz83tIGL13cXMZn6upPyg==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+
+	<style>
+		table {
+			width: 80%;
+			margin-left: 10%;
+			font-size: 1.25em;
+			font-family: TextFont;
+			color: #0000ff;
+		}
+
+		tr {
+			height: 40px;
+		}
+
+		th {
+			border-top: 1px solid blue;
+			border-bottom: 1px solid blue;
+		}
+
+		tr:nth-child(even) {
+			/* background-color: #d0efed; */
+			background-color: rgba(208, 239, 237, 0.5);
+		}
+
+
+		h2 {
+			font-family: TextFont;
+			width: 80%;
+			margin-left: 10%;
+			font-size: 1.5em;
+			color: #0000ff;
+			text-decoration: overline;
+			text-align: left;
+		}
+	</style>
+
+</head>
+
+<body>
+<!--Topbar-->
+	<div id="topbarDesktop" class="topbar fixedspot">
+		<div class="absolutespot topbar">
+			<div class="topbarText blueText" style="float: right;">
+				<span class="topbarHome">Home</span>
+				&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+				<span class="topbarSchedule">Schedule</span>
+				&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+				<span class="topbarLeaderboard">Leaderboard</span>
+				&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+				<span class="topbarGallery">Gallery</span>
+				&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+				<span class="topbarRegister">Register</span>
+			</div>
+		</div>
+		<div class="animateBar greenBackground"></div>
+	</div>
+
+	<div id="topbarMobile" class="topbar disappear fixedspot">
+		<div class="absolutespot topbar">
+			<div style="float: right;">
+				<div id="nav-toggle"><span></span></div>
+			</div>
+		</div>
+		<div class="animateBar greenBackground"></div>
+	</div>
+
+	<!--Navigation-->
+	<div id="Navigation" class="overlay disappear greenBackground">
+  		<div class="overlay-content">
+   		 <a class="topbarHome" >Home</a>
+   		 <a class="topbarSchedule" >Schedule</a>
+    	 <a class="topbarLeaderboard" >Leaderboard</a>
+    	 <a class="topbarGallery" >Gallery</a>
+   		 <a  class="topbarRegister" >Register</a>
+  		</div>
+	</div>
+
+
+	<!--Schedule-->
+	<div class="gradientWithSimonbg DetailText centerAlign">
+		<div style="height:100px"></div>
+		<div class="centerHeader blueText"><h2>Schedule</h2></div>
+		<div style="height:100px"></div>
+		<div id="schedtablediv" style="margin-top: 20px;">
+			<h3 style="text-align: center">Schedule for Aug 20th</h3>
+			<table id="schedtable">
+				<tbody id="schedtablebody">
+					<tr><th>Order</th><th>Team</th><th>Organization</th></tr>
+				</tbody>
+			</table>
+		</div>
+		<p class="greenText">coming soon</p>
+
+		<div style="height:45vh"></div>
+	</div>
+	
+	<!--Copyright-->
+	<div style="background-color: #084654; padding: 20px;" class="whiteText">
+		<div style="height:10px"></div>
+		<div class="footer">
+			<p>Icons made by Freepik from www.flaticon.com<p>
+		</div>
+
+
+
+		<!--Script-->
+
+
+
+
+		<script>
+
+			function displayHTMLTable(results) {
+				console.log("displaying results")
+				var table = document.getElementById("schedtablebody");
+				while (table.firstChild) {
+					table.removeChild(table.firstChild);
+				}
+				var data = results.data;
+
+
+				// create the header row
+				var therow = document.createElement("tr");
+
+				var th = document.createElement("th");
+				var thtxt = document.createTextNode("Order");
+				th.appendChild(thtxt);
+				therow.appendChild(th);
+
+				th = document.createElement("th");
+				thtxt = document.createTextNode("Team");
+				th.appendChild(thtxt);
+				therow.appendChild(th);
+
+				th = document.createElement("th");
+				thtxt = document.createTextNode("Organization");
+				th.appendChild(thtxt);
+				therow.appendChild(th);
+
+				table.appendChild(therow);
+
+				var nextupcount = 2;
+				
+				for (i = 0; i < data.length; i++) {
+					therow = document.createElement("tr");
+					table.appendChild(therow);
+					//table+= "<tr>";
+					var row = data[i];
+					var cells = row.join(",").split(",");
+					if (cells.length > 1) {
+						var nextup;
+						if (i == 0) {
+							nextup = document.createTextNode("Now Playing");
+						}
+						else if (i == 1) {
+							nextup = document.createTextNode("On Deck");
+						}
+						else {
+							nextup = document.createTextNode(nextupcount.toString());
+							nextupcount = nextupcount + 1;
+						}
+						var tdorder = document.createElement("td");
+						tdorder.appendChild(nextup);
+						therow.appendChild(tdorder);
+
+						for (j = 0; j < cells.length; j++) {
+							var thecell = document.createElement("td");
+							therow.appendChild(thecell);
+							var celltext = document.createTextNode(cells[j]);
+							thecell.appendChild(celltext);
+							if (cells[j] == 12) {
+								console.log("found 12");
+							}
+						}
+					}
+					else {
+						var breaktext = document.createTextNode(cells[0]);
+						var breakth = document.createElement("th");
+						breakth.colSpan = 4;
+						breakth.appendChild(breaktext);
+						therow.appendChild(breakth);
+					}
+				}
+			}
+
+			function parseSchedule() {
+				console.log("Parsing schedule file")
+				Papa.parse("sched.csv?" + Math.random, {
+					download: true,
+					skipEmptyLines: true,
+					complete: function (results) {
+						console.log(results);
+						displayHTMLTable(results)
+					}
+				});
+
+				setTimeout(parseSchedule, 60000);
+
+			}
+
+			parseSchedule();
+		</script>
+
+
+		<script>
+			$(document).ready(function () {
+				//Topbar
+				//Hover
+				$('.topbarHome').mouseover(function () {
+					$(this).fadeTo(300, 0.5);
+				});
+				$('.topbarHome').mouseout(function () {
+					$(this).fadeTo(300, 1);
+				});
+				$('.topbarSchedule').mouseover(function () {
+					$(this).fadeTo(300, 0.5);
+				});
+				$('.topbarSchedule').mouseout(function () {
+					$(this).fadeTo(300, 1);
+				});
+				$('.topbarLeaderboard').mouseover(function () {
+					$(this).fadeTo(300, 0.5);
+				});
+				$('.topbarLeaderboard').mouseout(function () {
+					$(this).fadeTo(300, 1);
+				});
+				$('.topbarGallery').mouseover(function () {
+					$(this).fadeTo(300, 0.5);
+				});
+				$('.topbarGallery').mouseout(function () {
+					$(this).fadeTo(300, 1);
+				});
+				$('.topbarRegister').mouseover(function () {
+					$(this).fadeTo(300, 0.5);
+				});
+				$('.topbarRegister').mouseout(function () {
+					$(this).fadeTo(300, 1);
+				});
+
+				//Home
+				$(".topbarHome").mousedown(function () {
+					if ($("#nav-toggle").hasClass("active")) {
+						$('#nav-toggle').removeClass("active");
+						$("#Navigation").slideToggle("slow", function () {
+							$(location).attr('href', 'index.html')
+						});
+					} else {
+						$(location).attr('href', 'index.html')
+					}
+				});
+
+				//Leaderboard, gallery, schedule
+				$(".topbarLeaderboard").mousedown(function () {
+					if ($("#nav-toggle").hasClass("active")) {
+						$('#nav-toggle').removeClass("active");
+						$("#Navigation").slideToggle("slow", function () {
+							$(location).attr('href', 'leaderboard.html')
+						});
+					} else {
+						$(location).attr('href', 'leaderboard.html')
+					}
+
+				});
+				$(".topbarGallery").mousedown(function () {
+					if ($("#nav-toggle").hasClass("active")) {
+						$('#nav-toggle').removeClass("active");
+						$("#Navigation").slideToggle("slow", function () {
+							$(location).attr('href', 'gallery.html')
+						});
+					} else {
+						$(location).attr('href', 'gallery.html')
+					}
+
+				});
+				$(".topbarSchedule").mousedown(function () {
+					if ($("#nav-toggle").hasClass("active")) {
+						$('#nav-toggle').removeClass("active");
+						$("#Navigation").slideToggle("slow", function () {
+							$(location).attr('href', 'schedule.html')
+						});
+					} else {
+						$(location).attr('href', 'schedule.html')
+					}
+
+				});
+				//Registration
+				$(".topbarRegister").mousedown(function () {
+					if ($("#nav-toggle").hasClass("active")) {
+						$(".animateBar").css({ "height": "50px" });
+						$('#nav-toggle').removeClass("active");
+						$(location).attr('href', 'index.html#Howto');
+
+					} else {
+						$(location).attr('href', 'index.html#Howto');
+					}
+				});
+
+				//Footer
+				//hover
+				$('#Privacy').mouseover(function () {
+					$(this).fadeTo(300, 0.5);
+				});
+				$('#Privacy').mouseout(function () {
+					$(this).fadeTo(300, 1);
+				});
+				$('#Terms').mouseover(function () {
+					$(this).fadeTo(300, 0.5);
+				});
+				$('#Terms').mouseout(function () {
+					$(this).fadeTo(300, 1);
+				});
+				//Link
+				$("#Privacy").click(function () {
+					window.open('', '_blank');
+				});
+				$("#Terms").click(function () {
+					window.open('', '_blank');
+				});
+
+				//Dimensions for Mobile
+				function changeCSS() {
+					var theWidth = $(window).width();
+					var theHeight = $(window).height();
+					//Debugging
+					//alert(theWidth);
+					//alert(theHeight);
+
+					var isMobile = /Android|webOS|iPhone|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+					var isIpad = /iPad/i.test(navigator.userAgent);
+					if (theHeight > theWidth && isMobile) {
+
+
+						//Big Image
+						$('#topbarDesktop').addClass('disappear');
+						$('#topbarMobile').removeClass('disappear');
+
+						//Schedule
+						$(".centerHeader h2").css({
+							"font-size": "3em",
+						});
+
+					} else if (theHeight <= theWidth && isMobile) {
+
+
+						//Big Image
+						$('#topbarDesktop').addClass('disappear');
+						$('#topbarMobile').removeClass('disappear');
+					}
+					$(window).resize();
+				}
+				// Execute on load
+				changeCSS();
+
+			});
+		</script>
+
+
+		<script>
+			//Navigation
+			//shape shifting hamburger menu
+			$("#nav-toggle").click(function () {
+				$('#nav-toggle').toggleClass("active");
+				$("#Navigation").slideToggle("slow");
+			});
+		</script>
+
+
+
+
+</body>
+
+</html>

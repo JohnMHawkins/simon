@@ -1,0 +1,753 @@
+﻿<!DOCTYPE html>
+<html>
+
+<head>
+	<meta http-equiv="content-type" content="text/html; charset=UTF-8"> 
+	<title>World's Largest Simon</title>
+	<meta name="keywords" content="Simon, 80's, outdoor, activities, world record, guinness, guinness world record, game, redmond, washington">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<link rel="shortcut icon" href="favicon.png">
+	<link rel="stylesheet" href="animate.min.css">
+	<link rel="stylesheet" href="css.css">
+
+	<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+
+</head>
+
+<body>
+<!--Topbar-->
+	<div id="topbarDesktop" class="topbar fixedspot">
+		<div class="absolutespot topbar">
+			<div class="topbarText blueText" style="float: right;">
+				<span class="topbarHome">Home</span>
+				&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+				<span class="topbarSchedule">Schedule</span>
+				&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+				<span class="topbarLeaderboard">Leaderboard</span>
+				&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+				<span class="topbarGallery">Gallery</span>
+				&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+				<span class="topbarRegister">Register</span>
+			</div>
+		</div>
+		<div class="animateBar greenBackground"></div>
+	</div>
+
+	<div id="topbarMobile" class="topbar disappear fixedspot">
+		<div class="absolutespot topbar">
+			<div style="float: right;">
+				<div id="nav-toggle"><span></span></div>
+			</div>
+		</div>
+		<div class="animateBar greenBackground"></div>
+	</div>
+
+	<!--Navigation-->
+	<div id="Navigation" class="overlay disappear greenBackground">
+  		<div class="overlay-content">
+   		 <a class="topbarHome" >Home</a>
+   		 <a class="topbarSchedule" >Schedule</a>
+    	 <a class="topbarLeaderboard" >Leaderboard</a>
+    	 <a class="topbarGallery" >Gallery</a>
+   		 <a  class="topbarRegister" >Register</a>
+  		</div>
+	</div>
+
+
+	<!--Big Image Intro-->
+	<div id="Intro" class="imageIntro">
+
+	<!--
+		<div id="BigImageBox1" class="verticalAlign" style="z-index:90;">
+	-->
+		<div id="BigImageBox1" class="verticalAlign" style="z-index:90;">
+
+			<div class="presentsContainer">
+				<div class="presentsImage">
+					<img src="OR-10yrlogo.png" style="width:100%;">
+				</div>
+			</div>
+
+			<div id="oneRedmond" class="oneRedmond blueText invisible" style="margin-top:-100px;">Presents</div>
+			<div id="BigLogo" class="image invisible">
+				<div>
+					<img src="logo_main.png" style="width:100%;">
+				</div>
+				<div class="DateText blueText centerAlign">
+					<p>August 20, 2022<br>Redmond Downtown Park</p>
+				</div>
+			</div>
+			<div>
+
+			</div>
+			<div id="bigButton" class="Button invisible">
+				LET'S PLAY!
+			</div>
+		</div>
+		<div id="gradientbridge" class="gradientbg smallBar">
+			<div style="height:65%"></div>
+			<div id="FindOut" class="invisible" style="margin: 0 auto; width:40px; cursor: pointer;">
+				<img style="width:100%" src="arrow.png" alt="arrow" title="arrow">
+			</div>
+		</div>
+
+	</div>
+
+	<!--About-->
+	<div id="About" class="About centerAlign">
+		<div style="height:200px;" ></div>
+		<div class="AboutText">
+			<div id="AboutText" class="whiteText invisible">
+				<h2>OneRedmond is hosting a record-setting tournament on the World’s Largest Simon and will be listed in the Guinness Book of World Record as the first World’s Largest Digital Memory Game.</h2>
+			</div>
+		</div>
+		<div style="height:100px;" ></div>
+	</div>
+	<!--Are you ready-->
+	<div class="ReadyBase">
+		<div class="ReadyColor">
+			<div class="colorBlockInitial simongreenbg"></div>
+			<div class="colorBlock simonyellowbg"></div>
+			<div class="colorBlock simonredbg"></div>
+			<div class="colorBlock simonbluebg"></div>
+		</div>
+		<div class="ReadyWord"><img src="icon_ready.png" style="width:100%;"></div>
+	</div>
+	<!--Detail-->
+	<div id="Detail" class="Detail">
+		<div style="height:100px;" ></div>
+		<div id="DetailIntro" class="DetailTextBox invisible">
+			<div class="greenText DetailText">
+					<p>Teams will compete to replicate the sequences of light and sounds by compressing the correct color pads on our 20x20 feet Simon. The top teams with the highest scores will move on to a final round to determine our winners!</p>
+			</div>
+		</div>
+		<div style="height:80px;" ></div>
+		<div  id="PlayerHeader" class="invisible">
+			<div class="centerHeader blueText">
+				<h1>Who can join?</h1>
+			</div>
+			<div style="height:20px;" ></div>
+			<div class="DetailTextBox">
+				<div class="greenText DetailText">
+					<p>This is an immersive experience suitable for all ages!</p>
+				</div>
+			</div>
+		</div>
+		<div style="height:40px;" ></div>
+		<div id="PlayerGroups" class="playerContainer centerAlign invisible">
+			<div class="playerImage">
+				<img src="icon_groups.png" style="width:100%;">
+				<div class="DetailText">
+					<h3>GROUPS</h3>
+					<p class="greenText">Team up with anyone you know up to 8 people</p>
+				</div>
+			</div>
+			<div class="playerImage">
+				<img src="icon_individuals.png" style="width:100%;">
+				<div class="DetailText">
+					<h3>INDIVIDUALS</h3>
+					<p class="greenText">Don’t have enough people? Don’t worry! You can still register and we will put you in an ad hoc team</p>
+				</div>
+			</div>
+		</div>
+		<div id="Howto" style="height:100px;" ></div>
+		<div id="HowtoHeader" class="invisible">
+			<div class="centerHeader blueText">
+				<h1>How can I play?</h1>
+			</div>
+			<div style="height:20px;" ></div>
+			<div class="DetailTextBox">
+				<div class="greenText DetailText">
+					<p>Here are 3 simple steps</p>
+				</div>
+			</div>
+		</div>
+		<div style="height:40px;" ></div>
+		<div id="Howto1" class="howtoContainer invisible">
+			<div class="howtoImage">
+				<img src="icon_step1.png" style="width:100%;">
+			</div>
+			<div class="DetailText howtoText">
+				<h3>1. Register</h3>
+				<p class="greenText">Register for the tournament to get your spot</p>
+				<div style="height:20px;" ></div>
+				<div id="howtoButton" class="howtoButton">
+					Register!
+				</div>
+			</div>
+		</div>
+		<div style="height:40px;" ></div>
+		<div id="Howto2" class="howtoContainer invisible">
+			<div class="howtoImage">
+				<img src="icon_step2.png" style="width:100%;">
+			</div>
+			<div class="DetailText howtoText">
+				<h3>2. Come to the event</h3>
+				<p class="greenText">The tournament is happening on</p>
+				<div style="height:10px;" ></div>
+				<p class="greenText">
+					Saturday, August 20 | 12:00pm - 9:00pm
+				</p>
+				<div style="height: 30px;">
+					<p class="greenText">
+						Bring your family and friends to cheer you on! They may be selected as a substitute for a team. The event is open to the general public to enjoy.
+					</p>
+				</div>
+				<div style="height:30px;" ></div>
+				<p class="blueText">
+					Location:
+				</p>
+				<p class="greenText">
+					Redmond Downtown Park Pavilion<br>
+					16101 NE Redmond Way<br> 
+					Redmond, WA 98052
+				</p>
+				<div style="height:20px;" ></div>
+				<div id="Address"class="howtoButton">
+					View map
+				</div>
+			</div>
+		</div>
+		<div style="height:80px;" ></div>
+		<div id="Howto3" class="howtoContainer invisible">
+			<div class="howtoImage">
+				<img src="icon_step3.png" style="width:100%;">
+			</div>
+			<div class="DetailText howtoText">
+				<h3>3. Have a good time</h3>
+				<p class="greenText">Aside from the main tournament, there are many more activities and games provided by our partners for you to enjoy.</p>
+				<p class="greenText">Click Here for <a href="https://bit.ly/RedmondSummer">More Information.</a></p>
+			</div>
+		</div>
+		<div class="howtoBottomSpace" ></div>
+	
+	</div>
+<div class="whiteBackground">
+	<!--corlor bar-->
+	<div class="colorBlockContainer">
+		<div class="colorBlockInitial simongreenbg"></div>
+		<div class="colorBlock simonyellowbg"></div>
+		<div class="colorBlock simonredbg"></div>
+		<div class="colorBlock simonbluebg"></div>
+	</div>
+	<!--Sponsors-->
+	<div id="Sponsors" class="sponsors whiteBackground">
+		<div style="height:100px;" ></div>
+		<div>
+			<h1 id="HostHead" class="blueText invisible">
+					<div class="AboutBox">&nbsp;</div>
+					Hosted & Co-produced by
+			</h1>
+			<div style="height:10px;" ></div>
+			<div id="HostBody" class="hostContainer invisible">
+				<div class="hostImage">
+					<img src="host_oneredmond.png" style="width:100%;">
+				</div>
+				<div class="hostImage">
+					<img src="coproduce_artcenter.jpeg" style="width:100%;">
+				</div>
+			</div>
+		</div>
+		<div style="height:50px;" ></div>
+		<div>
+			<div id="SponsorHead" class="invisible">
+				<h1 class="blueText">
+					<div class="AboutBox">&nbsp;</div>
+					Sponsors & Partners
+				</h1>
+			</div>
+			<div style="height:10px;" ></div>
+			<div id="SponsorBody" class="invisible sponsorContainer">
+				<div class="sponsorImage">
+					<img src="sponsor_microsoft.png" style="width:100%;">
+				</div>
+				<div class="sponsorImage">
+					<img src="sponsor_amazongametech.png" style="width:100%;">
+				</div>
+				<div class="sponsorImage">
+					<img src="COR-logo-black.png" style="width:100%;">
+				</div>
+				<div class="sponsorImage">
+					<img src="ExpRed_Web_1C.png" style="width:100%;">
+				</div>
+				<div class="sponsorImage">
+					<img src="WIN-Logo-medtr.png" style="width:100%;">
+				</div>
+			</div>
+		</div>
+	</div>
+
+	<!--Register-->
+	<div id="Registration" class="gradientWithSimonbg">
+		<div style="height:100px"></div>
+		<div id="registerHeader" class="centerHeader blueText invisible"><h2>Count me in!</h2></div>
+		<div style="height:20px;" ></div>
+		<a href="https://RedmondSummerGames.eventbrite.com/?aff=SimonWeb">
+			<div id="registerButton" class="Button invisible">
+				REGISTER!
+			</div>
+		</a>
+		<div style="height:150px"></div>
+	</div>
+</div>
+	
+	<!--Copyright-->
+	<div style="background-color: #084654; padding: 20px;" class="whiteText">
+	<div style="height:10px"></div>
+	<div class="footer"> 
+		<p>Icons made by Freepik from www.flaticon.com<p>
+	</div>
+	
+	
+	
+	<!--Script-->
+	
+<script>
+	$(document).ready(function () {
+	//Topbar
+  		//Hover
+  	$('.topbarHome').mouseover(function(){
+  		  $( this ).fadeTo(300, 0.5);
+	});
+	$('.topbarHome').mouseout(function(){
+  		  $( this ).fadeTo(300, 1);
+	});
+	$('.topbarSchedule').mouseover(function(){
+  		  $( this ).fadeTo(300, 0.5);
+	});
+	$('.topbarSchedule').mouseout(function(){
+  		  $( this ).fadeTo(300, 1);
+	});
+	$('.topbarLeaderboard').mouseover(function(){
+  		  $( this ).fadeTo(300, 0.5);
+	});
+	$('.topbarLeaderboard').mouseout(function(){
+  		  $( this ).fadeTo(300, 1);
+	});
+	$('.topbarGallery').mouseover(function(){
+  		  $( this ).fadeTo(300, 0.5);
+	});
+	$('.topbarGallery').mouseout(function(){
+  		  $( this ).fadeTo(300, 1);
+	});
+	$('.topbarRegister').mouseover(function(){
+  		  $( this ).fadeTo(300, 0.5);
+	});
+	$('.topbarRegister').mouseout(function(){
+  		  $( this ).fadeTo(300, 1);
+	});
+
+	//Home
+	$(".topbarHome").mousedown(function() {
+		if ($( "#nav-toggle" ).hasClass( "active" )){
+			$(".animateBar").css({"height":"0px"});
+			$('#nav-toggle').removeClass("active");
+			$( "#Navigation" ).slideToggle( "slow", function(){
+				$('html,body').animate({
+				scrollTop: $("#Intro").offset().top}, 'slow');
+			} );
+
+		} else{
+			$(".animateBar").css({"height":"0px"});
+			$('html,body').animate({
+			scrollTop: $("#Intro").offset().top}, 'slow');
+
+		}
+	});
+
+	//Leaderboard, gallery, schedule
+	$(".topbarLeaderboard").mousedown(function() {
+		if ($( "#nav-toggle" ).hasClass( "active" )){
+			$('#nav-toggle').removeClass("active");
+			$( "#Navigation" ).slideToggle( "slow", function(){
+				$(location).attr('href','leaderboard.html')
+			} );
+		} else {
+			$(location).attr('href','leaderboard.html')
+		}
+		
+	});
+	$(".topbarGallery").mousedown(function() {
+		if ($( "#nav-toggle" ).hasClass( "active" )){
+			$('#nav-toggle').removeClass("active");
+			$( "#Navigation" ).slideToggle( "slow", function(){
+				$(location).attr('href','gallery.html')
+			} );
+		} else {
+			$(location).attr('href','gallery.html')
+		}
+		
+	});
+	$(".topbarSchedule").mousedown(function() {
+		if ($( "#nav-toggle" ).hasClass( "active" )){
+			$('#nav-toggle').removeClass("active");
+			$( "#Navigation" ).slideToggle( "slow", function(){
+				$(location).attr('href','schedule.html')
+			} );
+		} else {
+			$(location).attr('href','schedule.html')
+		}
+		
+	});
+	//Registration
+	$(".topbarRegister").mousedown(function() {
+		if ($( "#nav-toggle" ).hasClass( "active" )){
+			$(".animateBar").css({"height":"50px"});
+			$('#nav-toggle').removeClass("active");
+			$( "#Navigation" ).slideToggle( "slow", function(){
+				$('html,body').animate({
+				scrollTop: $("#HowtoHeader").offset().top-100}, 'slow');
+			});
+			$('#AboutText').removeClass('invisible').addClass('animated fadeInRight');
+			$('#DetailIntro').removeClass('invisible').addClass('animated fadeInUp');
+			$('#PlayerHeader').removeClass('invisible').addClass('animated fadeInUp');
+			$('#PlayerGroups').removeClass('invisible').addClass('animated fadeInUp');
+			$('#HowtoHeader').removeClass('invisible').addClass('delay2 animated fadeInUp');
+			$('#Howto1').removeClass('invisible').addClass('delay animated fadeInUp');
+			$('#Howto2').removeClass('invisible').addClass('delay animated fadeInUp');
+		} else{
+			$(".animateBar").css({"height":"50px"});
+			$('html,body').animate({
+			scrollTop: $("#HowtoHeader").offset().top-100}, 'slow');
+			$('#AboutText').removeClass('invisible').addClass('animated fadeInRight');
+			$('#DetailIntro').removeClass('invisible').addClass('animated fadeInUp');
+			$('#PlayerHeader').removeClass('invisible').addClass('animated fadeInUp');
+			$('#PlayerGroups').removeClass('invisible').addClass('animated fadeInUp');
+			$('#HowtoHeader').removeClass('invisible').addClass('delay2 animated fadeInUp');
+			$('#Howto1').removeClass('invisible').addClass('delay animated fadeInUp');
+			$('#Howto2').removeClass('invisible').addClass('delay animated fadeInUp');
+			}
+	});
+	$("#registerButton").click(function() {
+		window.open('https://RedmondSummerGames.eventbrite.com/?aff=SimonWeb', '_blank'); 
+	});
+	$("#howtoButton").click(function() {
+		window.open('https://RedmondSummerGames.eventbrite.com/?aff=SimonWeb', '_blank'); 
+	});
+	$("#Address").click(function() {
+		window.open('https://www.google.com/maps/place/Downtown+Park/@47.6747799,-122.1276878,17z/data=!3m1!4b1!4m5!3m4!1s0x549073737a0162b1:0x576e05b2debec33e!8m2!3d47.6747799!4d-122.1254991'); 
+	});
+
+	//Footer
+		//hover
+		$('#Privacy').mouseover(function(){
+  		  $( this ).fadeTo(300, 0.5);
+		});
+		$('#Privacy').mouseout(function(){
+  		  $( this ).fadeTo(300, 1);
+		});
+		$('#Terms').mouseover(function(){
+  		  $( this ).fadeTo(300, 0.5);
+		});
+		$('#Terms').mouseout(function(){
+  		  $( this ).fadeTo(300, 1);
+		});
+		//Link
+		$("#Privacy").click(function() {
+			window.open('', '_blank');
+		});
+		$("#Terms").click(function() {
+			window.open('', '_blank');
+		});
+
+//Animation and  Scrolling link
+	//Landing page
+	$('#oneRedmond').removeClass('invisible').addClass('animated2 fadeIn');
+	$('#BigLogo').removeClass('invisible').addClass('delay animated2 fadeInUp ');
+	$('#bigButton').removeClass('invisible').addClass('delay3 animated2 fadeInUp ');
+	$('#FindOut').removeClass('invisible').addClass('delay3 animated fadeIn');
+
+	//Click on play button
+	$("#bigButton").click(function() {
+		$(".animateBar").css({"height":"50px"});
+		$('html,body').animate({
+			scrollTop: $("#HowtoHeader").offset().top-100},
+		'slow');
+
+		$('#AboutText').removeClass('invisible').addClass('animated fadeInRight');
+		$('#DetailIntro').removeClass('invisible').addClass('animated fadeInUp');
+		$('#PlayerHeader').removeClass('invisible').addClass('animated fadeInUp');
+		$('#PlayerGroups').removeClass('invisible').addClass('animated fadeInUp');
+		$('#HowtoHeader').removeClass('invisible').addClass('delay2 animated fadeInUp');
+		$('#Howto1').removeClass('invisible').addClass('delay animated fadeInUp');
+		$('#Howto2').removeClass('invisible').addClass('delay animated fadeInUp');
+	});
+
+	//Click to about
+	$("#FindOut").click(function() {
+		$(".animateBar").css({"height":"50px"});
+		$('html,body').animate({
+			scrollTop: $("#About").offset().top-48},
+		'slow');
+
+		$('#AboutText').removeClass('invisible').addClass('animated fadeInRight');
+		$('#SponsorHead').removeClass('invisible').addClass('delay2 animated fadeInLeft');
+		$('#SponsorBody').removeClass('invisible').addClass('delay2 animated2 fadeInUp');
+	});
+
+	//Timed-Animation
+
+		$('body,html').on('click scroll mousedown mouseout mouseover wheel DOMMouseScroll mousewheel keyup keypress touchmove ' , function (event) {
+			if ($(window).scrollTop() >= ($("#Intro").offset().top)) {
+				$(".animateBar").css({"height":"0px"});
+			} 
+		//AboutPage
+			if ($(window).scrollTop() >= ($("#Intro").offset().top+10)) {
+				$(".animateBar").css({"height":"50px"});
+			} 
+			if ($(window).scrollTop() >= ($("#gradientbridge").offset().top-400)) {
+				$('#AboutText').removeClass('invisible').addClass('animated fadeInRight');
+			}
+			if ($(window).scrollTop() >= ($("#Detail").offset().top-600)) {
+				$('#DetailIntro').removeClass('invisible').addClass('animated fadeInUp');
+			}
+			if ($(window).scrollTop() >= ($("#Detail").offset().top-400)) {
+				$('#PlayerHeader').removeClass('invisible').addClass('animated fadeInUp');
+			}
+			if ($(window).scrollTop() >= ($("#Detail").offset().top-300)) {
+				$('#PlayerGroups').removeClass('invisible').addClass('animated fadeInUp');
+			}
+			if ($(window).scrollTop() >= ($("#Detail").offset().top+150)) {
+				$('#HowtoHeader').removeClass('invisible').addClass('animated fadeInUp');
+			}
+			if ($(window).scrollTop() >= ($("#Detail").offset().top+300)) {
+				$('#Howto1').removeClass('invisible').addClass('animated fadeInUp');
+			}
+			if ($(window).scrollTop() >= ($("#Detail").offset().top+600)) {
+				$('#Howto2').removeClass('invisible').addClass('animated fadeInUp');
+			}
+			if ($(window).scrollTop() >= ($("#Detail").offset().top+950)) {
+				$('#Howto3').removeClass('invisible').addClass('animated fadeInUp');
+			}
+			if ($(window).scrollTop() >= ($("#Sponsors").offset().top-700)) {
+				$('#HostHead').removeClass('invisible').addClass('animated fadeInLeft');
+				$('#HostBody').removeClass('invisible').addClass('delay2 animated fadeInUp');
+			}
+			if ($(window).scrollTop() >= ($("#Sponsors").offset().top-500)) {
+				$('#SponsorHead').removeClass('invisible').addClass('animated fadeInLeft');
+				$('#SponsorBody').removeClass('invisible').addClass('delay2 animated2 fadeInUp');
+			}
+			if ($(window).scrollTop() >= ($("#Registration").offset().top-700)) {
+				$('#registerHeader').removeClass('invisible').addClass('animated2 fadeIn');
+				$('#registerButton').removeClass('invisible').addClass('delay2 animated fadeInUp');
+			}
+
+		}).scroll();
+
+	
+
+	//Dimensions for Mobile
+	function changeCSS() {
+      		var theWidth = $(window).width();
+      		var theHeight = $(window).height();
+      		//Debugging
+      		//alert(theWidth);
+		//alert(theHeight);
+
+      		 var isMobile = /Android|webOS|iPhone|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+      		  var isIpad = /iPad/i.test(navigator.userAgent);
+     	if ( theHeight > theWidth && isMobile){
+      		 		
+
+      		 	//Big Image
+      		 	$('#topbarDesktop').addClass('disappear');
+      		 	$('#topbarMobile').removeClass('disappear');
+      		 	$('#Intro').height(theHeight);
+      		 	$('.image').css({
+      		 		"width": "100%"
+      		 		});
+      		 	$('.DateText').css({
+      		 		"font-size":"1.2em",
+      		 		});
+      		 	$(".Button").css({
+      		 		"width":"50%",
+      		 		"font-size":"1.5em",
+      		 		"padding":"10px 20px",
+      		 		});
+      		 	$("#FindOut").css({
+      		 		"width": "10%",
+      		 		});
+      		 	$(".imageIntro").css({
+      		 		"background-size":"150%, 100%",
+      		 		});
+
+      		 	//About
+      		 	$(".AboutText").css({
+      		 		"width": "90%",
+      		 		"display":"block",
+      		 		"margin":"0 auto",
+      		 		});
+      		 	$(".AboutText h2").css({
+      		 		"font-size":"1.3em",
+      		 		});
+      		 	//Ready
+      		 	$(".ReadyBase").css({
+      		 		"height": "100px",
+      		 		});
+      		 	$(".ReadyColor").css({
+      		 		"height": "100px",
+      		 		});
+      		 	//Detail
+      		 	$(".DetailText p").css({
+      		 		"font-size":"1.3em",
+      		 		});
+      		 	$(".DetailText h3").css({
+      		 		"font-size":"1.7em",
+      		 		});
+      		 	$(".centerHeader").css({
+      		 		"font-size":"1em",
+      		 		});
+      		 	$(".playerImage").css({
+      		 		"width": "90%",
+      		 		"margin":"0 auto",
+      		 		});
+      		 	$(".howtoImage").css({
+      		 		"width": "90%",
+      		 		"margin":"0 auto",
+      		 		});
+      		 	$(".howtoButton").css({
+      		 		"width": "90%",
+      		 		"margin":"0 auto",
+      		 		});
+      		 	$(".howtoText").css({
+      		 		"width": "90%",
+      		 		"margin":"0 auto",
+      		 		});
+      		 	
+      		 	//Sponsor
+      		 	$(".hostContainer").css({
+      		 		"width": "80%",
+      		 		});
+      		 	$(".hostImage").css({
+      		 		"width": "100%",
+      		 		"padding": "30px 0",
+      		 		"display": "block",
+      		 		});
+      		 	$(".sponsorContainer").css({
+      		 		"width": "100%",
+      		 		});
+      		 	$(".sponsorImage").css({
+      		 		"width": "45%",
+      		 		"padding": "20px 0",
+      		 		"display": "inline-block",
+      		 		});
+
+      		 	//Register
+      		 	$(".centerHeader h2").css({
+      		 		"font-size":"3em",
+      		 		});
+      		 	$(".Registration").css({
+      		 		"width": "70%",
+      		 		});
+
+				
+		} else if ( theHeight <= theWidth && isMobile){
+
+
+      		 	//Big Image
+      		 	$('#topbarDesktop').addClass('disappear');
+      		 	$('#topbarMobile').removeClass('disappear');
+      		 	$('.image').css({
+      		 		"top":"20%",
+      		 		"width": "40%",
+      		 		});
+      		 	$(".Button").css({
+      		 		"width":"20%",
+      		 		"font-size": "1.3em",
+      		 		"padding":"10px 20px",
+      		 		});
+      		 	$("#FindOut").css({
+      		 		"width": "2%",
+      		 		});      		 	
+      		 	//About
+      		 	$(".AboutText").css({
+      		 		"width": "90%",
+      		 		"display":"block",
+      		 		"margin":"0 auto"
+      		 		});
+      		 	$(".AboutText h2").css({
+      		 		"font-size":"1.3em",
+      		 		});
+      		 	//Ready
+      		 	$(".ReadyBase").css({
+      		 		"height": "200px",
+      		 		});
+      		 	$(".ReadyColor").css({
+      		 		"height": "200px",
+      		 		});
+      		 	//Detail
+      		 	$(".DetailText p").css({
+      		 		"font-size":"1.3em",
+      		 		});
+      		 	$(".DetailText h3").css({
+      		 		"font-size":"1.7em",
+      		 		});
+      		 	//Register
+      		 	$(".Registration").css({
+      		 		"width": "70%",
+      		 		});
+
+
+
+				
+		} else  if ( theHeight > theWidth && isIpad){
+
+      		 	//Big Image
+      		 	$('#Intro').height(theHeight);
+      		 	$('.image').css({
+      		 		"width": "90%"
+      		 		});
+      		 	$(".Button").css({
+      		 		"width":"30%"
+      		 		});
+      		 	$("#FindOut").css({
+      		 		"width": "7%"
+      		 		});	
+      		 	$(".imageIntro").css({
+      		 		"background-size":"120%, 100%",
+      		 		}); 	
+      		 	//About
+      		 	$(".AboutText").css({
+      		 		"width": "90%",
+      		 		"display":"block",
+      		 		"margin":"0 auto"
+      		 		});
+      		 	//Register
+      		 	$(".Registration").css({
+      		 		"width": "70%",
+      		 		});
+
+
+				
+		} else  if ( theWidth >= theHeight && isIpad){
+
+      		 	//Big Image
+      		 	$('.image').css({
+      		 		"width": "50%",
+      		 		});
+      		
+		 }
+		$(window).resize();
+	}
+		// Execute on load
+   		changeCSS();
+	
+	});
+</script>
+	
+
+<script>
+//Navigation
+//shape shifting hamburger menu
+$("#nav-toggle").click(function() {
+		$('#nav-toggle').toggleClass("active");
+		$( "#Navigation" ).slideToggle( "slow" );
+});
+</script>
+	
+
+
+	
+</body>
+
+</html>

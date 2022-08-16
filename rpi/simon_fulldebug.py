@@ -18,7 +18,7 @@ sudo apt install python3-gpiozero
 sudo pip3 install DMXEnttecPro
 '''
 
-bTestMode = False
+bTestMode = True
 
 SIMON_CENTER = 0
 SIMON_NONE   = 0
@@ -68,10 +68,11 @@ audioch1 = None
 
 def LOG(msg):
     print(msg)
-
+'''
 import smbus
 from gpiozero import LED
 i2cbus = smbus.SMBus(1)
+'''
 ardAddr = 0x03
 
 
@@ -91,7 +92,7 @@ CenterLights = [[None, None, None], [None, None, None], [None, None, None], [Non
 ############################################
 #test code for not on Pi
 # PI
-'''
+
 class LED():
 
     def __init__(self, gpio):
@@ -105,8 +106,8 @@ class LED():
         print("--- turn off " + str(self.pin))
         pass
 
-'''
-##
+
+##  ``
 ##############################################
 
 def setupLights():
